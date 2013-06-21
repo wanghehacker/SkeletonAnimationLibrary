@@ -40,7 +40,7 @@ package dragonBones.utils
 			while(i --)
 			{
 				var boneData:BoneData = armatureData.boneDataList[i];
-				var boneTimeline:TransformTimeline = animationData.getBoneTimeline(boneData.name);
+				var boneTimeline:TransformTimeline = animationData.getTimeline(boneData.name);
 				if(!boneTimeline)
 				{
 					continue;
@@ -48,7 +48,7 @@ package dragonBones.utils
 				
 				if(boneData.parent)
 				{
-					var parentTimeline:TransformTimeline = animationData.getBoneTimeline(boneData.parent);
+					var parentTimeline:TransformTimeline = animationData.getTimeline(boneData.parent);
 				}
 				else
 				{
@@ -143,10 +143,9 @@ package dragonBones.utils
 			{
 				var boneData:BoneData = boneDataList[i];
 				var boneName:String = boneData.name;
-				var timeline:TransformTimeline = animationData.getBoneTimeline(boneName);
-				if(!timeline)
+				if(!animationData.getTimeline(boneName))
 				{
-					animationData.addBoneTimeline(TransformTimeline.HIDE_TIMELINE, boneName);
+					animationData.addTimeline(TransformTimeline.HIDE_TIMELINE, boneName);
 				}
 			}
 		}

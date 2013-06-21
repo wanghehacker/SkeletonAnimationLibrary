@@ -27,6 +27,8 @@
 		private static const ANGLE_TO_RADIAN:Number = Math.PI / 180;
 		
 		private static var _currentSkeletonData:SkeletonData;
+		private static var _helpTransform1:DBTransform = new DBTransform();
+		private static var _helpTransform2:DBTransform = new DBTransform();
 		
 		private static function checkVersion(skeletonXML:XML):void
 		{
@@ -45,7 +47,6 @@
 					throw new Error("Nonsupport version!");
 			}
 		}
-		
 		/**
 		 * Compress all data into a ByteArray for serialization.
 		 * @param	skeletonXML The Skeleton data.
@@ -76,7 +77,6 @@
 			
 			return byteArrayCopy;
 		}
-		
 		/**
 		 * Decompress a compatible DragonBones data.
 		 * @param	compressedByteArray The ByteArray to decompress.
@@ -128,7 +128,6 @@
 			}
 			return null;
 		}
-		
 		/**
 		 * Parse the SkeletonData.
 		 * @param	skeletonXML The Skeleton xml to parse.
@@ -214,23 +213,27 @@
 		{
 			var skinData:SkinData = new SkinData();
 			//skinData.name
+			
+			/*
+			
 			var boneXMLList:XMLList = armatureXML[ConstValues.BONE];
 			var i:int = boneXMLList.length();
 			while(i --)
 			{
 				var boneXML:XML = boneXMLList[i];
+			
+			*/
+			for each(var boneXML:XML in armatureXML[ConstValues.BONE])
+			{
 				var slotData:SlotData = new SlotData();
 				skinData.addSlotData(slotData);
 				slotData.name = boneXML.@[ConstValues.A_NAME];
 				slotData.parent = boneXML.@[ConstValues.A_NAME];
 				slotData.zOrder = boneXML.@[ConstValues.A_Z];
-				var displayXMLList:XMLList = boneXML[ConstValues.DISPLAY];
-				var j:int = displayXMLList.length();
-				while(j --)
+				for each(var displayXML:XML in boneXML[ConstValues.DISPLAY])
 				{
-					var displayXML:XML = displayXMLList[j];
 					var displayData:DisplayData = new DisplayData();
-					slotData.addDisplayData(displayData, j);
+					slotData.addDisplayData(displayData);
 					displayData.name = displayXML.@[ConstValues.A_NAME];
 					
 					if(displayXML.@[ConstValues.A_IS_ARMATURE] == "1")
@@ -244,10 +247,10 @@
 					//
 					displayData.transform.x = Number(boneXML.@[ConstValues.A_PIVOT_X]);
 					displayData.transform.y = Number(boneXML.@[ConstValues.A_PIVOT_Y]);
-					displayData.transform.skewX = 0;
-					displayData.transform.skewY = 0;
 					displayData.transform.scaleX = 1;
 					displayData.transform.scaleY = 1;
+					displayData.transform.skewX = 0;
+					displayData.transform.skewY = 0;
 					//
 					_currentSkeletonData.addSubTexturePivot(Number(displayXML.@[ConstValues.A_PIVOT_X]), Number(displayXML.@[ConstValues.A_PIVOT_Y]), displayData.name);
 				}
@@ -266,14 +269,7 @@
 			animationData.scale = animationData.duration / (Number(animationXML.@[ConstValues.A_DURATION_TWEEN]) / _currentSkeletonData.frameRate);
 			animationData.tweenEasing = Number(animationXML.@[ConstValues.A_TWEEN_EASING][0]);
 			
-			var position:Number = 0;
-			for each(var frameXML:XML in animationXML[ConstValues.FRAME])
-			{
-				var frame:Frame = parseMainFrame(frameXML);
-				frame.position = position;
-				animationData.addFrame(frame);
-				position += frame.duration;
-			}
+			parseTimeline(animationXML, animationData, parseMainFrame);
 			
 			var boneAnimationXMLList:XMLList = animationXML[ConstValues.BONE];
 			var i:int = boneAnimationXMLList.length();
@@ -289,7 +285,7 @@
 				boneTimeline.scale = durationScale;
 				boneTimeline.offset = durationOffset;
 				parseTimeline(boneAnimationXML, boneTimeline, parseTransformFrame);
-				animationData.addBoneTimeline(boneTimeline, name);
+				animationData.addTimeline(boneTimeline, name);
 			}
 			
 			DBDataUtils.addHideTimeline(animationData, armatureData);
@@ -358,8 +354,14 @@
 			transformFrame.global.scaleY = 
 				transformFrame.transform.scaleY = Number(frameXML.@[ConstValues.A_SCALE_Y]);
 			
-			transformFrame.pivot.x = Number(frameXML.@[ConstValues.A_PIVOT_X]);
-			transformFrame.pivot.y = Number(frameXML.@[ConstValues.A_PIVOT_Y]);
+			var pivotX:Number = Number(frameXML.@[ConstValues.A_PIVOT_X]);
+			var pivotY:Number = Number(frameXML.@[ConstValues.A_PIVOT_Y]);
+			if(pivotX || pivotY)
+			{
+				transformFrame.pivot = new Point();
+				transformFrame.pivot.x = pivotX;
+				transformFrame.pivot.y = pivotY;
+			}
 			
 			return transformFrame;
 		}

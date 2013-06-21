@@ -25,7 +25,7 @@ package dragonBones.objects
 			//_displayDataList = null;
 		}
 		
-		public function addDisplayData(displayData:DisplayData, index:int):void
+		public function addDisplayData(displayData:DisplayData):void
 		{
 			if(!displayData)
 			{
@@ -34,11 +34,7 @@ package dragonBones.objects
 			if (_displayDataList.indexOf(displayData) < 0)
 			{
 				_displayDataList.fixed = false;
-				if(index >= _displayDataList.length)
-				{
-					_displayDataList.length = index;
-				}
-				_displayDataList[index] = displayData;
+				_displayDataList[_displayDataList.length] = displayData;
 				_displayDataList.fixed = true;
 			}
 			else

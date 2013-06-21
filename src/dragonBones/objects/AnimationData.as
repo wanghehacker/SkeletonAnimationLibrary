@@ -10,10 +10,10 @@ package dragonBones.objects
 		public var loop:int;
 		public var tweenEasing:Number;
 		
-		private var _boneAnimations:Object;
-		public function get boneAnimations():Object
+		private var _timelines:Object;
+		public function get timelines():Object
 		{
-			return _boneAnimations;
+			return _timelines;
 		}
 		
 		private var _fadeTime:Number;
@@ -34,34 +34,34 @@ package dragonBones.objects
 			
 			_fadeTime = 0;
 			
-			_boneAnimations = {};
+			_timelines = {};
 		}
 		
 		override public function dispose():void
 		{
 			super.dispose();
 			
-			for(var boneName:String in _boneAnimations)
+			for(var boneName:String in _timelines)
 			{
-				_boneAnimations[boneName].dispose();
-				delete _boneAnimations[boneName];
+				(_timelines[boneName] as TransformTimeline).dispose();
+				delete _timelines[boneName];
 			}
-			//_boneAnimations = null;
+			//_timelines = null;
 		}
 		
-		public function getBoneTimeline(boneName:String):TransformTimeline
+		public function getTimeline(boneName:String):TransformTimeline
 		{
-			return _boneAnimations[boneName] as TransformTimeline;
+			return _timelines[boneName] as TransformTimeline;
 		}
 		
-		public function addBoneTimeline(timeline:TransformTimeline, boneName:String):void
+		public function addTimeline(timeline:TransformTimeline, boneName:String):void
 		{
 			if(!timeline)
 			{
 				throw new ArgumentError();
 			}
 			
-			_boneAnimations[boneName] = timeline;
+			_timelines[boneName] = timeline;
 		}
 	}
 }

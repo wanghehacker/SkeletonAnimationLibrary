@@ -153,17 +153,16 @@ package dragonBones.objects
 		
 		public function sortBoneDataList():void
 		{
-			var l:int = _boneDataList.length;
-			if(l == 0)
+			var i:int = _boneDataList.length;
+			if(i == 0)
 			{
 				return;
 			}
 			
 			_helpArray.length = 0;
-			var i:int = 0;
-			while(l --)
+			while(i --)
 			{
-				var boneData:BoneData = _boneDataList[l];
+				var boneData:BoneData = _boneDataList[i];
 				var level:int = 0;
 				var parentData:BoneData = boneData;
 				while(parentData)
@@ -171,10 +170,12 @@ package dragonBones.objects
 					level ++;
 					parentData = getBoneData(parentData.parent);
 				}
-				_helpArray[i ++] = {level:level, boneData:boneData};
+				_helpArray[i] = {level:level, boneData:boneData};
 			}
 			
 			_helpArray.sortOn("level", Array.NUMERIC);
+			
+			i = _helpArray.length;
 			while(i --)
 			{
 				_boneDataList[i] = _helpArray[i].boneData;

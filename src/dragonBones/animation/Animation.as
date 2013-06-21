@@ -380,15 +380,15 @@
 							{
 								var weight:Number = animationState.weight * weigthLeft;
 								var transform:DBTransform = timelineState.transform;
-								//var pivot:Point = timelineState.pivot;
+								var pivot:Point = timelineState.pivot;
 								x += transform.x * weight;
 								y += transform.y * weight;
 								skewX += transform.skewX * weight;
 								skewY += transform.skewY * weight;
 								scaleX += transform.scaleX * weight;
 								scaleY += transform.scaleY * weight;
-								//pivotX += pivot.x * weight;
-								//pivotY += pivot.y * weight;
+								pivotX += pivot.x * weight;
+								pivotY += pivot.y * weight;
 								
 								layerTotalWeight += weight;
 							}
@@ -405,7 +405,7 @@
 					}
 				}
 				transform = bone._tween;
-				//pivot = bone._pivot;
+				pivot = bone._pivot;
 				
 				transform.x = x;
 				transform.y = y;
@@ -413,8 +413,8 @@
 				transform.skewY = skewY;
 				transform.scaleX = scaleX;
 				transform.scaleY = scaleY;
-				//pivot.x = pivotX;
-				//pivot.y = pivotY;
+				pivot.x = pivotX;
+				pivot.y = pivotY;
 			}
 		}
 		

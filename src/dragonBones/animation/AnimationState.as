@@ -214,11 +214,11 @@ package dragonBones.animation
 				}
 			}
 			
-			for(var boneName:String in _clip.boneAnimations)
+			for(var boneName:String in _clip.timelines)
 			{
 				var timelineState:TimelineState = TimelineState.borrowObject();
 				var bone:Bone = _armature.getBone(boneName);
-				var timeline:TransformTimeline = _clip.getBoneTimeline(boneName);
+				var timeline:TransformTimeline = _clip.getTimeline(boneName);
 				timelineState.fadeIn(_armature, bone, this, timeline);
 				_boneTimelineStates[boneName] = timelineState;
 			}
@@ -257,7 +257,7 @@ package dragonBones.animation
 		public function addMixing(boneName:String):void
 		{
 			//
-			if(_clip.getBoneTimeline(boneName))
+			if(_clip.getTimeline(boneName))
 			{
 				if(_mixingBoneList.indexOf(boneName) < 0)
 				{

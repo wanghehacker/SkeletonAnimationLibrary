@@ -41,7 +41,7 @@ package dragonBones
 
 	public class Armature extends Bone implements IAnimatable
 	{
-		private static var helpArray:Array = [];
+		private static var _helpArray:Array = [];
 		
 		/** @private */
 		dragonBones_internal var _slotsZOrderChanged:Boolean;
@@ -360,9 +360,12 @@ package dragonBones
 		
 		private function sortBoneList():void
 		{
-			helpArray.length = 0;
-			var l:int = 0;
 			var i:int = _boneList.length;
+			if(i == 0)
+			{
+				return;
+			}
+			_helpArray.length = 0;
 			while(i --)
 			{
 				var level:int = 0;
@@ -373,18 +376,17 @@ package dragonBones
 					level ++;
 					boneParent = boneParent.parent;
 				}
-				helpArray[l ++] = {level:level, bone:bone};
+				_helpArray[i] = {level:level, bone:bone};
 			}
 			
-			if(l > 0)
+			_helpArray.sortOn("level", Array.NUMERIC|Array.DESCENDING);
+			
+			i = _helpArray.length;
+			while(i --)
 			{
-				helpArray.sortOn("level", Array.NUMERIC|Array.DESCENDING);
-				i = _boneList.length = l;
-				while(i --)
-				{
-					_boneList[i] = helpArray[i].bone;
-				}
+				_boneList[i] = _helpArray[i].bone;
 			}
+			_helpArray.length = 0;
 		}
 		
 	}
