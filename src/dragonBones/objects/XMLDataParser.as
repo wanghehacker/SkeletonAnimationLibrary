@@ -358,14 +358,8 @@
 			transformFrame.global.scaleY = 
 				transformFrame.transform.scaleY = Number(frameXML.@[ConstValues.A_SCALE_Y]);
 			
-			var pivotX:Number = Number(frameXML.@[ConstValues.A_PIVOT_X]);
-			var pivotY:Number = Number(frameXML.@[ConstValues.A_PIVOT_Y]);
-			if(pivotX || pivotY)
-			{
-				transformFrame.pivot = new Point();
-				transformFrame.pivot.x = pivotX;
-				transformFrame.pivot.y = pivotY;
-			}
+			transformFrame.pivot.x = Number(frameXML.@[ConstValues.A_PIVOT_X]);
+			transformFrame.pivot.y = Number(frameXML.@[ConstValues.A_PIVOT_Y]);
 			
 			return transformFrame;
 		}

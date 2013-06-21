@@ -192,8 +192,7 @@ package dragonBones.animation
 			transform.copy(_originTransform);
 			pivot.x = _originPivot.x;
 			pivot.y = _originPivot.y;
-			_currentFrame = _timeline.frameList[0] as TransformFrame;
-			arriveFrameData(_currentFrame, true);
+			arriveFrameData(_timeline.frameList[0] as TransformFrame, true);
 		}
 		
 		private function updateList(progress:Number):void
@@ -323,9 +322,9 @@ package dragonBones.animation
 				transform.scaleX = _originTransform.scaleX + currentTransform.scaleX + _durationTransform.scaleX * progress;
 				transform.scaleY = _originTransform.scaleY + currentTransform.scaleY + _durationTransform.scaleY * progress;
 				
-				var currentPivot:Point = _currentFrame.pivot;
-				pivot.x = _originPivot.x + currentPivot.x + _durationPivot.x * progress;
-				pivot.y = _originPivot.y + currentPivot.y + _durationPivot.y * progress;
+				//var currentPivot:Point = _currentFrame.pivot;
+				//pivot.x = _originPivot.x + currentPivot.x + _durationPivot.x * progress;
+				//pivot.y = _originPivot.y + currentPivot.y + _durationPivot.y * progress;
 			}
 		}
 		
