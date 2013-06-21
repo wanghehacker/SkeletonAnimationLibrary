@@ -1,106 +1,167 @@
-package dragonBones.factorys {
+﻿package dragonBones.factorys
+{
+	/**
+	* Copyright 2012-2013. DragonBones. All Rights Reserved.
+	* @playerversion Flash 10.0, Flash 10
+	* @langversion 3.0
+	* @version 2.0
+	*/
 	import dragonBones.Armature;
 	import dragonBones.Bone;
-	import dragonBones.display.StarlingBridgeImage;
-	import dragonBones.objects.Node;
-	import dragonBones.objects.SkeletonData;
-	import dragonBones.objects.TextureData;
-	import dragonBones.utils.BytesType;
+	import dragonBones.Slot;
+	import dragonBones.core.dragonBones_internal;
+	import dragonBones.display.StarlingDisplayBridge;
+	import dragonBones.textures.ITextureAtlas;
+	import dragonBones.textures.StarlingTextureAtlas;
+	import dragonBones.textures.SubTextureData;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.skeletonNamespace;
 	
-	import flash.geom.Matrix;
+	import flash.display.BitmapData;
+	import flash.display.MovieClip;
 	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
 	
+	import starling.core.Starling;
 	import starling.display.Image;
 	import starling.display.Sprite;
 	import starling.textures.SubTexture;
 	import starling.textures.Texture;
-	
-	use namespace skeletonNamespace;
+	import starling.textures.TextureAtlas;
+
+	use namespace dragonBones_internal;
 	
 	/**
-	 *
-	 * @author Akdcl
+	 * A object managing the set of armature resources for Starling engine. It parses the raw data, stores the armature resources and creates armature instrances.
+	 * @see dragonBones.Armature
 	 */
-	public class StarlingFactory extends BaseFactory {
-		public static function getTextureDisplay(_textureData:TextureData, _fullName:String):Image {
-			var _subTextureXML:XML = _textureData.getSubTextureXML(_fullName);
-			if (_subTextureXML) {
-				var _subTexture:SubTexture = _textureData.subTextures[_fullName];
-				if(!_subTexture){
-					var _rect:Rectangle = new Rectangle(
-						int(_subTextureXML.attribute(ConstValues.A_X)),
-						int(_subTextureXML.attribute(ConstValues.A_Y)),
-						int(_subTextureXML.attribute(ConstValues.A_WIDTH)),
-						int(_subTextureXML.attribute(ConstValues.A_HEIGHT))
-					);
-					_subTexture = new SubTexture(_textureData.texture as Texture, _rect);
-					_textureData.subTextures[_fullName] = _subTexture;
+	
+	/**
+	 * A StarlingFactory instance manages the set of armature resources for the starling DisplayList. It parses the raw data (ByteArray), stores the armature resources and creates armature instances.
+	 * <p>Create an instance of the StarlingFactory class that way:</p>
+	 * <listing>
+	 * import flash.events.Event; 
+	 * import dragonBones.factorys.BaseFactory;
+	 * 
+	 * [Embed(source = "../assets/Dragon2.png", mimeType = "application/octet-stream")]  
+	 *	private static const ResourcesData:Class;
+	 * var factory:StarlingFactory = new StarlingFactory(); 
+	 * factory.addEventListener(Event.COMPLETE, textureCompleteHandler);
+	 * factory.parseData(new ResourcesData());
+	 * </listing>
+	 * @see dragonBones.Armature
+	 */
+	public class StarlingFactory extends BaseFactory
+	{
+		/**
+		 * Whether to generate mapmaps (true) or not (false).
+		 */
+		public var generateMipMaps:Boolean;
+		/**
+		 * Whether to optimize for rendering (true) or not (false).
+		 */
+		public var optimizeForRenderToTexture:Boolean;
+		/**
+		 * Apply a scale for SWF specific texture. Use 1 for no scale.
+		 */
+		public var scaleForTexture:Number;
+		
+		/**
+		 * Creates a new StarlingFactory instance.
+		 */
+		public function StarlingFactory()
+		{
+			super();
+			scaleForTexture = 1;
+		}
+		/**
+		 * Generates an Armature instance.
+		 * @return Armature An Armature instance.
+		 */
+		override protected function generateArmature():Armature
+		{
+			var armature:Armature = new Armature(new Sprite());
+			return armature;
+		}
+		
+		/** @private */
+		override protected function generateSlot():Slot
+		{
+			var slot:Slot = new Slot(new StarlingDisplayBridge());
+			return slot;
+		}
+		/**
+		 * Generates a starling DisplayObject
+		 * @param	textureAtlas The TextureAtlas.
+		 * @param	fullName A qualified name.
+		 * @param	pivotX A pivot x based value.
+		 * @param	pivotY A pivot y based value.
+		 * @return
+		 */
+		override protected function generateTextureDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
+		{
+			var starlingTextureAtlas:StarlingTextureAtlas = textureAtlas as StarlingTextureAtlas;
+			if (starlingTextureAtlas)
+			{
+				//1.4
+				var subTextureData:SubTextureData = starlingTextureAtlas.getRegion(fullName) as SubTextureData;
+				if (subTextureData)
+				{
+					pivotX = pivotX || subTextureData.pivotX;
+					pivotY = pivotY || subTextureData.pivotY;
 				}
-				var _img:StarlingBridgeImage = new StarlingBridgeImage(_subTexture);
-				_img.pX = int(_subTextureXML.attribute(ConstValues.A_PIVOT_X));
-				_img.pY = int(_subTextureXML.attribute(ConstValues.A_PIVOT_Y));
-				return _img;
+			}			
+			var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
+			if (subTexture)
+			{
+				var image:Image = new Image(subTexture);
+				image.pivotX = pivotX;
+				image.pivotY = pivotY;
+				return image;
 			}
 			return null;
 		}
 		
-		override public function set textureData(_textureData:TextureData):void{
-			super.textureData = _textureData;
-			if(textureData){
-				textureData.bitmap;
+		override protected function generateTextureAtlas(content:Object, textureAtlasXML:XML):Object
+		{
+			var texture:Texture;
+			var bitmapData:BitmapData;
+			if (content is BitmapData)
+			{
+				bitmapData = content as BitmapData;
+				texture = Texture.fromBitmapData(bitmapData, generateMipMaps, optimizeForRenderToTexture);
 			}
-		}
-		
-		public var autoDisposeBitmapData:Boolean = true;
-		
-		public function StarlingFactory(_skeletonData:SkeletonData = null, _textureData:TextureData = null):void {
-			super(_skeletonData, _textureData);
-		}
-		
-		override protected function generateArmature(_armatureName:String, _animationName:String = null):Armature {
-			if (!textureData.texture) {
-				if(textureData.dataType == BytesType.ATF){
-					textureData.texture = Texture.fromAtfData(textureData.rawData);
-				}else{
-					textureData.texture = Texture.fromBitmap(textureData.bitmap);
-					//no need to keep the bitmapData
-					if (autoDisposeBitmapData) {
-						textureData.bitmap.bitmapData.dispose();
-					}
-				}
+			else if (content is MovieClip)
+			{
+				var width:int = int(textureAtlasXML.attribute(ConstValues.A_WIDTH)) * scaleForTexture;
+				var height:int = int(textureAtlasXML.attribute(ConstValues.A_HEIGHT)) * scaleForTexture;				
+				_helpMatirx.a = 1;
+				_helpMatirx.b = 0;
+				_helpMatirx.c = 0;
+				_helpMatirx.d = 1;
+				_helpMatirx.scale(scaleForTexture, scaleForTexture);
+				_helpMatirx.tx = 0;
+				_helpMatirx.ty = 0;				
+				var movieClip:MovieClip = content as MovieClip;
+				movieClip.gotoAndStop(1);
+				bitmapData = new BitmapData(width, height, true, 0xFF00FF);
+				bitmapData.draw(movieClip, _helpMatirx);
+				movieClip.gotoAndStop(movieClip.totalFrames);
+				texture = Texture.fromBitmapData(bitmapData, generateMipMaps, optimizeForRenderToTexture, scaleForTexture);
 			}
-			
-			var _armature:Armature = new Armature(new Sprite());
-			_armature.addDisplayChild = addDisplayChild;
-			_armature.removeDisplayChild = removeDisplayChild;
-			_armature.updateDisplay = updateDisplay;
-			return _armature;
-		}
-		
-		override public function generateBoneDisplay(_armature:Armature, _bone:Bone, _imageName:String):Object {
-			return getTextureDisplay(textureData, _imageName);
-		}
-		
-		private static function addDisplayChild(_child:Object, _parent:Object, _index:int = -1):void {
-			if (_parent) {
-				if(_index < 0){
-					_parent.addChild(_child);
-				}else{
-					_parent.addChildAt(_child, Math.min(_index, _parent.numChildren));
-				}
+			else
+			{
+				//
+			}			
+			var textureAtlas:StarlingTextureAtlas = new StarlingTextureAtlas(texture, textureAtlasXML);			
+			if (Starling.handleLostContext)
+			{
+				textureAtlas._bitmapData = bitmapData;
 			}
-		}
-		
-		private static function removeDisplayChild(_child:Object):void {
-			if(_child.parent){
-				_child.parent.removeChild(_child);
+			else
+			{
+				bitmapData.dispose();
 			}
-		}
-		
-		private static function updateDisplay(_display:Object, matrix:Matrix):void {
-			_display.transformationMatrix = matrix;
+			return textureAtlas;
 		}
 	}
 }

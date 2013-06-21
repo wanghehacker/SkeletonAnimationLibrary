@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
+  <includeClasses>
+    <classEntry path="dragonBones.Bone"/>
+    <classEntry path="dragonBones.animation.Animation"/>
+    <classEntry path="dragonBones.animation.IAnimatable"/>
+    <classEntry path="dragonBones.errors.UnknownDataError"/>
+    <classEntry path="dragonBones.events.AnimationEvent"/>
+    <classEntry path="dragonBones.events.FrameEvent"/>
+    <classEntry path="dragonBones.events.SoundEvent"/>
+    <classEntry path="dragonBones.objects.AnimationData"/>
+    <classEntry path="dragonBones.objects.ArmatureData"/>
+    <classEntry path="dragonBones.objects.BoneData"/>
+    <classEntry path="dragonBones.objects.DecompressedData"/>
+    <classEntry path="dragonBones.objects.DisplayData"/>
+    <classEntry path="dragonBones.objects.SkeletonData"/>
+    <classEntry path="dragonBones.objects.XMLDataParser"/>
+    <classEntry path="dragonBones.textures.ITextureAtlas"/>
+    <classEntry path="dragonBones.textures.NativeTextureAtlas"/>
+    <classEntry path="dragonBones.textures.StarlingTextureAtlas"/>
+    <classEntry path="dragonBones.utils.BytesType"/>
+    <classEntry path="dragonBones.utils.ConstValues"/>
+    <classEntry path="dragonBones.utils.TransformUtils"/>
+    <classEntry path="dragonBones.utils.DBDataUtils"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

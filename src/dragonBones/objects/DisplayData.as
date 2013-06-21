@@ -1,14 +1,17 @@
-package dragonBones.objects
+﻿package dragonBones.objects
 {
-	
-	public final class DisplayData
+	final public class DisplayData
 	{
-		public var name:String;
-		public var isArmature:Boolean;
+		public static const ARMATURE:String = "armature";
+		public static const IMAGE:String = "image";
 		
-		public function DisplayData(_name:String, _isArmature:Boolean = false){
-			name = _name;
-			isArmature = _isArmature;
+		public var name:String;
+		public var type:String;
+		public var transform:DBTransform;
+		
+		public function DisplayData()
+		{
+			transform = new DBTransform();
 		}
 	}
 }

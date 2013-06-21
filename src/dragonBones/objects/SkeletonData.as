@@ -1,61 +1,132 @@
-package dragonBones.objects {
-	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.generateAnimationData;
-	import dragonBones.utils.generateArmatureData;
-	
-	import flash.utils.ByteArray;
-	
-	/**
-	 * 
-	 * @author Akdcl
-	 */
-	final public class SkeletonData extends BaseDicData {
-		private var animationDatas:Object;
+package dragonBones.objects 
+{
+	import flash.geom.Point;
+
+	final public class SkeletonData
+	{
+		public var name:String;
 		
-		public function SkeletonData(_skeletonXML:XML) {
-			super(null);
-			animationDatas = { };
-			if (_skeletonXML) {
-				setData(_skeletonXML);
+		public var frameRate:uint;
+		
+		private var _subTexturePivots:Object
+		
+		private var _armatureDataList:Vector.<ArmatureData>;
+		public function get armatureDataList():Vector.<ArmatureData>
+		{
+			return _armatureDataList;
+		}
+		
+		public function SkeletonData()
+		{
+			_armatureDataList = new Vector.<ArmatureData>(0, true);
+			_subTexturePivots = {};
+		}
+		
+		public function dispose():void
+		{
+			for each(var armatureData:ArmatureData in _armatureDataList)
+			{
+				armatureData.dispose();
 			}
-		}
-		
-		override public function dispose():void{
-			super.dispose();
-			for each(var _data:AnimationData in animationDatas){
-				_data.dispose();
+			for(var i:String in _subTexturePivots)
+			{
+				delete _subTexturePivots[i];
 			}
-			animationDatas = null;
+			_armatureDataList.fixed = false;
+			_armatureDataList.length = 0;
+			//_armatureDataList = null;
+			//_subTexturePivots = null;
 		}
 		
-		public function getArmatureData(_name:String):ArmatureData {
-			return datas[_name];
-		}
-		
-		public function getAnimationData(_name:String):AnimationData {
-			return animationDatas[_name];
-		}
-		
-		public function addAnimationData(_data:AnimationData, _id:String = null):void{
-			_id = _id || _data.name;
-			if (animationDatas[_id]) {
-				animationDatas[_id].dispose();
-			}
-			animationDatas[_id] = _data;
-		}
-		
-		public function setData(_skeletonXML:XML):void {
-			name = _skeletonXML.attribute(ConstValues.A_NAME);
-			
-			var _dataName:String;
-			for each(var _armatureXML:XML in _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE)) {
-				_dataName = _armatureXML.attribute(ConstValues.A_NAME);
-				addData(generateArmatureData(_dataName, _armatureXML), _dataName);
+		public function getArmatureData(armatureName:String):ArmatureData
+		{
+			var i:int = _armatureDataList.length;
+			while(i --)
+			{
+				if(_armatureDataList[i].name == armatureName)
+				{
+					return _armatureDataList[i];
+				}
 			}
 			
-			for each(var _animationXML:XML in _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION)) {
-				_dataName = _animationXML.attribute(ConstValues.A_NAME);
-				addAnimationData(generateAnimationData(_dataName, _animationXML, getArmatureData(_dataName)), _dataName);
+			return null;
+		}
+		
+		public function addArmatureData(armatureData:ArmatureData):void
+		{
+			if(!armatureData)
+			{
+				throw new ArgumentError();
+			}
+			
+			if(_armatureDataList.indexOf(armatureData) < 0)
+			{
+				_armatureDataList.fixed = false;
+				_armatureDataList[_armatureDataList.length] = armatureData;
+				_armatureDataList.fixed = true;
+			}
+			else
+			{
+				throw new ArgumentError();
+			}
+		}
+		
+		public function removeArmatureData(armatureData:ArmatureData):void
+		{
+			var index:int = _armatureDataList.indexOf(armatureData);
+			if(index >= 0)
+			{
+				_armatureDataList.fixed = false;
+				_armatureDataList.splice(index, 1);
+				_armatureDataList.fixed = true;
+			}
+		}
+		
+		public function removeArmatureDataByName(armatureName:String):void
+		{
+			var i:int = _armatureDataList.length;
+			while(i --)
+			{
+				if(_armatureDataList[i].name == armatureName)
+				{
+					_armatureDataList.fixed = false;
+					_armatureDataList.splice(i, 1);
+					_armatureDataList.fixed = true;
+				}
+			}
+		}
+		
+		public function getSubTexturePivot(subTextureName:String):Point
+		{
+			return _subTexturePivots[subTextureName];
+		}
+		
+		public function addSubTexturePivot(x:Number, y:Number, subTextureName:String):void
+		{
+			var point:Point = _subTexturePivots[subTextureName];
+			if(point)
+			{
+				point.x = x;
+				point.y = y;
+			}
+			else
+			{
+				_subTexturePivots[subTextureName] = new Point(x, y);
+			}
+		}
+		
+		public function removeSubTexturePivot(subTextureName:String):void
+		{
+			if(subTextureName)
+			{
+				delete _subTexturePivots[subTextureName];
+			}
+			else
+			{
+				for(subTextureName in _subTexturePivots)
+				{
+					delete _subTexturePivots[subTextureName];
+				}
 			}
 		}
 	}

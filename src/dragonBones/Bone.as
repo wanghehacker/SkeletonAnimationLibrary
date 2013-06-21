@@ -1,331 +1,159 @@
-package dragonBones {
-	import dragonBones.animation.Tween;
-	import dragonBones.events.EventDispatcher;
-	import dragonBones.objects.BoneData;
-	import dragonBones.objects.Node;
-	import dragonBones.utils.skeletonNamespace;
+﻿package dragonBones
+{
+	import dragonBones.core.DBObject;
+	import dragonBones.core.dragonBones_internal;
 	
-	import flash.geom.Matrix;
+	import flash.geom.Point;
 	
-	use namespace skeletonNamespace;
+	use namespace dragonBones_internal;
 	
-	/**
-	 *
-	 * @author akdcl
-	 */
-	public class Bone extends EventDispatcher {
-		public var name:String;
-		public var userData:Object;
+	public class Bone extends DBObject
+	{
+		//0/1/2
+		public var scaleMode:int;
 		
-		public var origin:BoneData;
-		public var global:Node;
-		public var node:Node;
+		dragonBones_internal var _defaultSlot:Slot;
+		dragonBones_internal var _pivot:Point;
 		
-		skeletonNamespace var tween:Tween;
+		private var _children:Vector.<DBObject>;
 		
-		protected var _globalTransformMatrix:Matrix = new Matrix;
-		protected var _transformMatrixForChildren:Matrix = new Matrix;
-		
-		protected var children:Vector.<Bone>;
-		
-		skeletonNamespace var addDisplayChild:Function;
-		skeletonNamespace var removeDisplayChild:Function;
-		skeletonNamespace var updateDisplay:Function;
-		
-		private var displayList:Array;
-		private var displayIndex:int = -1;
-		
-		private var __armature:Armature;
-		public function get armature():Armature{
-			return __armature;
+		public function get childArmature():Armature
+		{
+			return _defaultSlot?_defaultSlot.childArmature:null; 
 		}
 		
-		private var __parent:Bone;
-		public function get parent():Bone{
-			return __parent;
+		public function get display():Object
+		{
+			return _defaultSlot?_defaultSlot.display:null;
 		}
-		
-		protected var __display:Object;
-		public function get display():Object {
-			return __display;
-		}
-		public function set display(_display:Object):void {
-			if(__display == _display) {
-				return;
-			}
-			
-			if (__display) {
-				removeDisplayChild(__display);
-				__display = null;
-			}else if (displayList[displayIndex] is Armature) {
-				removeChild(displayList[displayIndex] as Bone);
-			}else {
-				
-			}
-			
-			if (_display is Armature) {
-				displayList[displayIndex] = _display;
-				childArmature.origin.z = origin.z;
-				addChild(_display as Bone);
-			}else if (_display) {
-				displayList[displayIndex] = _display;
-				if(__armature){
-					addDisplayChild(_display, __armature.display, origin.z);
-				}
-				__display = _display;
-			}else {
-				if(displayIndex >= 0){
-					displayList[displayIndex] = false;
-				}
+		public function set display(value:Object):void
+		{
+			if(_defaultSlot)
+			{
+				_defaultSlot.display = value;
 			}
 		}
 		
-		public function get childArmature():Armature{
-			return displayList[displayIndex] as Armature;
-		}
-		
-		skeletonNamespace function changeDisplay(_displayIndex:int):void {
-			if(displayIndex == _displayIndex){
-				return;
+		override dragonBones_internal function setArmature(value:Armature):void
+		{
+			if(this._armature)
+			{
+				this._armature.removeBoneFrom(this);
 			}
-			
-			var _display:Object = displayList[displayIndex];
-			if (_display is Armature) {
-				removeChild(_display as Bone);
+			super.setArmature(value);
+			if(this._armature)
+			{
+				this._armature.addBoneTo(this);
 			}
-			
-			displayIndex = _displayIndex;
-			
-			if(_displayIndex < 0){
-				display = null;
-			}else{
-				_display = displayList[displayIndex];
-				if(_display){
-					display = _display;
-				}else if (_display === false) {
-					display = null;
-				}
-			}
-			if(__armature){
-				__armature.bonesIndexChanged = true;
+			var i:int = _children.length;
+			while(i --)
+			{
+				_children[i].setArmature(this._armature);
 			}
 		}
 		
-		public function Bone() {
+		public function Bone()
+		{
+			super();
+			_children = new Vector.<DBObject>(0, true);
+			_scaleType = 2;
 			
-			origin = new BoneData();
-			displayList = [];
+			_pivot = new Point();
 			
-			children = new Vector.<Bone>;
-			
-			global = new Node();
-			node = new Node();
-			node.scaleX = 0;
-			node.scaleY = 0;
-			
-			tween = new Tween(this);
+			scaleMode = 1;
 		}
 		
-		public function update():void {
-			if (__armature) {
-				tween.update();
-				
-				global.x = origin.x + node.x + tween.node.x;
-				global.y = origin.y + node.y + tween.node.y;
-				global.skewX = origin.skewX + node.skewX + tween.node.skewX;
-				global.skewY = origin.skewY + node.skewY + tween.node.skewY;
-				//origin.scaleX + node.scaleX + tweenNode.scaleX;
-				//origin.scaleY + node.scaleY + tweenNode.scaleY;
-				global.scaleX = node.scaleX + tween.node.scaleX;
-				global.scaleY = node.scaleX + tween.node.scaleY;
-				
-				//Note: this formula of transform is defined by Flash pro
-				var cosX:Number = Math.cos(global.skewX);
-				var sinX:Number = Math.sin(global.skewX);
-				var cosY:Number = Math.cos(global.skewY);
-				var sinY:Number = Math.sin(global.skewY);
-				
-				if (children.length > 0 || __display)
-				{
-					_globalTransformMatrix.a = global.scaleX * cosY;
-					_globalTransformMatrix.b = global.scaleX * sinY;
-					_globalTransformMatrix.c = -global.scaleY * sinX;
-					_globalTransformMatrix.d = global.scaleY * cosX;
-					_globalTransformMatrix.tx = global.x;
-					_globalTransformMatrix.ty = global.y;
-				}
-				
-				if (children.length > 0)
-				{
-					//如何让斜切只传递给children的 x y rotation呢？
-					_transformMatrixForChildren.a = cosY;
-					_transformMatrixForChildren.b = sinY;
-					_transformMatrixForChildren.c = -sinX;
-					_transformMatrixForChildren.d = cosX;
-					_transformMatrixForChildren.tx = global.x;
-					_transformMatrixForChildren.ty = global.y;
-				}
-				
-				if (__parent != __armature) {
-					_globalTransformMatrix.concat(__parent._transformMatrixForChildren);
-					if (children.length > 0)
-					{
-						_transformMatrixForChildren.concat(__parent._transformMatrixForChildren);
-					}
-				}
-				if (__display) {
-					updateDisplay(__display, _globalTransformMatrix);
-				}
-			}
+		override public function dispose():void
+		{
+			super.dispose();
 			
-			for each(var _child:Bone in children) {
-				_child.update();
+			var i:int = _children.length;
+			while(i --)
+			{
+				_children[i].dispose();
+			}
+			_children.fixed = false;
+			_children.length = 0;
+			
+			_children = null;
+			_defaultSlot = null;
+			_pivot = null;
+		}
+		
+		override dragonBones_internal function update():void
+		{
+			super.update();
+			
+			var pivotX:Number = _pivot.x;
+			var pivotY:Number = _pivot.y;
+			if(pivotX || pivotY)
+			{
+				this._globalTransformMatrix.tx -= this._globalTransformMatrix.a * pivotX + this._globalTransformMatrix.c * pivotY;
+				this._globalTransformMatrix.ty -= this._globalTransformMatrix.b * pivotX + this._globalTransformMatrix.d * pivotY;
 			}
 		}
 		
-		public function dispose():void{
-			removeEventListeners();
-			for each(var _child:Bone in children){
-				_child.dispose();
+		public function contains(child:DBObject):Boolean
+		{
+			if(!child)
+			{
+				throw new ArgumentError();
 			}
 			
-			setParent(null);
-			tween.dispose();
-			
-			tween = null;
-			userData = null;
-			origin = null;
-			node = null;
-			
-			children = null;
-			
-			__armature = null;
-			__parent = null;
-			__display = null;
-			
-			displayList = null;
-		}
-		
-		public function getChildByDisplay(_display:Object, _searchInChild:Boolean = false):Bone{
-			if(_display){
-				for each(var _eachBone:Bone in children){
-					if(_eachBone.display == _display){
-						return _eachBone;
-					}
-					if(_searchInChild && !(_eachBone is Armature)){
-						var _boneInChild:Bone = _eachBone.getChildByDisplay(_display, true);
-						if(_boneInChild){
-							return _boneInChild;
-						}
-					}
-				}
+			var ancestor:DBObject = this;
+			while (ancestor != child && ancestor != null)
+			{
+				ancestor = ancestor.parent;
 			}
-			return null;
+			return ancestor == child;
 		}
 		
-		public function getChildByName(_name:String, _searchInChild:Boolean = false):Bone{
-			if(_name){
-				for each(var _eachBone:Bone in children){
-					if(_eachBone.origin.name == _name){
-						return _eachBone;
-					}
-					if(_searchInChild && !(_eachBone is Armature)){
-						var _boneInChild:Bone = _eachBone.getChildByName(_name, true);
-						if(_boneInChild){
-							return _boneInChild;
-						}
-					}
-				}
-			}
-			return null;
-		}
-		
-		public function eachChild(_callback:Function, _args:Array = null, _searchInChild:Boolean = false):Object{
-			var _result:Object;
-			for each(var _eachBone:Bone in children){
-				_result = _callback(_eachBone, _args);
-				if(_result){
-					return _result;
-				}
-				if(_searchInChild && !(_eachBone is Armature)){
-					_result = _eachBone.eachChild(_callback, _args, _searchInChild);
-					if(_result){
-						return _result;
-					}
-				}
-			}
-			return null;
-		}
-		
-		public function addChild(_child:Bone):void {
-			if (children.length > 0?(children.indexOf(_child) < 0):true) {
-				children.push(_child);
-				_child.removeFromParent();
-				_child.setParent(this);
-			}
-		}
-		
-		public function removeChild(_child:Bone, _dispose:Boolean = false):void {
-			var _index:int = children.indexOf(_child);
-			if (_index >= 0) {
-				_child.setParent(null);
-				children.splice(_index, 1);
-				if(_dispose){
-					_child.dispose();
-				}
-			}else{
-				
-			}
-		}
-		
-		public function removeFromParent(_dispose:Boolean = false):void{
-			if(__parent){
-				__parent.removeChild(this, _dispose);
-			}
-		}
-		
-		private function setParent(_parent:Bone):void{
-			var _ancestor:Bone = _parent;
-			while (_ancestor != this && _ancestor != null){
-				_ancestor = _ancestor.parent;
+		public function addChild(child:DBObject):void
+		{
+			if(!child)
+			{
+				throw new ArgumentError();
 			}
 			
-			if (_ancestor == this){
+			if((child is Bone) && (child as Bone).contains(this))
+			{
 				throw new ArgumentError("An Bone cannot be added as a child to itself or one of its children (or children's children, etc.)");
-			}else{
-				__parent = _parent;
 			}
-			var _child:Bone;
-			if(__parent){
-				__armature = (__parent as Armature) || __parent.armature;
-				if (__armature) {
-					if(__display){
-						addDisplayChild(__display, __armature.display, origin.z);
-					}
-					__armature.addToBones(this);
-					if(!this is Armature){
-						for each(_child in children){
-							if(_child.display){
-								addDisplayChild(_child.display, __armature.display, origin.z);
-							}
-							__armature.addToBones(_child);
-						}
-					}
+			if(child.parent)
+			{
+				child.parent.removeChild(child);
+			}
+			_children.fixed = false;
+			_children[_children.length] = child;
+			_children.fixed = true;
+			child.setParent(this);
+			
+			if(!_defaultSlot && child is Slot)
+			{
+				_defaultSlot = child as Slot;
+			}
+		}
+		
+		public function removeChild(child:DBObject):void
+		{
+			if(!child)
+			{
+				throw new ArgumentError();
+			}
+			
+			var index:int = _children.indexOf(child);
+			if (index >= 0)
+			{
+				_children.fixed = false;
+				_children.splice(index, 1);
+				_children.fixed = true;
+				child.setParent(null);
+				
+				if(_defaultSlot && child == _defaultSlot)
+				{
+					_defaultSlot = null;
 				}
-			}else if (__armature) {
-				if(!this is Armature){
-					for each(_child in children){
-						removeDisplayChild(_child.display);
-						__armature.removeFromBones(_child);
-					}
-				}
-				if(__display){
-					removeDisplayChild(__display);
-				}
-				__armature.removeFromBones(this);
-				__armature = null;
 			}
 		}
 	}
-	
 }

@@ -1,38 +1,67 @@
-package dragonBones.objects{
+package dragonBones.objects
+{
+	import dragonBones.core.dragonBones_internal;
 	
-	/**
-	 * ...
-	 * @author Akdcl
-	 */
-	final public class AnimationData extends BaseDicData {
-		private var firstMovement:String;
-		public function AnimationData(_name:String = null) {
-			super(_name);
+	use namespace dragonBones_internal;
+	
+	final public class AnimationData extends Timeline
+	{
+		public var name:String;
+		public var loop:int;
+		public var tweenEasing:Number;
+		
+		private var _boneAnimations:Object;
+		public function get boneAnimations():Object
+		{
+			return _boneAnimations;
 		}
 		
-		override public function addData(_data:Object, _id:String=null, _replaceIfExists:Boolean=false):Boolean{
-			if(!firstMovement){
-				firstMovement = _id;
+		private var _fadeTime:Number;
+		public function get fadeTime():Number
+		{
+			return _fadeTime;
+		}
+		public function set fadeTime(value:Number):void
+		{
+			_fadeTime = value > 0?value:0;
+		}
+		
+		public function AnimationData()
+		{
+			super();
+			loop = 0;
+			tweenEasing = NaN;
+			
+			_fadeTime = 0;
+			
+			_boneAnimations = {};
+		}
+		
+		override public function dispose():void
+		{
+			super.dispose();
+			
+			for(var boneName:String in _boneAnimations)
+			{
+				_boneAnimations[boneName].dispose();
+				delete _boneAnimations[boneName];
 			}
-			return super.addData(_data, _id, _replaceIfExists);
+			//_boneAnimations = null;
 		}
 		
-		override public function getSearchList():Array{
-			if(firstMovement){
-				var _list:Array = [firstMovement];
-				for (var _name:String in datas) {
-					if(_list.indexOf(_name) < 0){
-						_list.push(_name);
-					}
-				}
-				return _list;
+		public function getBoneTimeline(boneName:String):TransformTimeline
+		{
+			return _boneAnimations[boneName] as TransformTimeline;
+		}
+		
+		public function addBoneTimeline(timeline:TransformTimeline, boneName:String):void
+		{
+			if(!timeline)
+			{
+				throw new ArgumentError();
 			}
-			return super.getSearchList();
-		}
-		
-		public function getData(_name:String):MovementData {
-			return datas[_name];
+			
+			_boneAnimations[boneName] = timeline;
 		}
 	}
-	
 }
