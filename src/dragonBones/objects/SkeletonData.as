@@ -1,14 +1,20 @@
 package dragonBones.objects 
 {
-	import flash.geom.Point;
-
 	final public class SkeletonData
 	{
 		public var name:String;
 		
 		public var frameRate:uint;
 		
-		private var _subTexturePivots:Object
+		public function get armatureNames():Vector.<String>
+		{
+			var nameList:Vector.<String> = new Vector.<String>;
+			for each(var armatureData:ArmatureData in _armatureDataList)
+			{
+				nameList[nameList.length] = armatureData.name;
+			}
+			return nameList;
+		}
 		
 		private var _armatureDataList:Vector.<ArmatureData>;
 		public function get armatureDataList():Vector.<ArmatureData>
@@ -19,7 +25,6 @@ package dragonBones.objects
 		public function SkeletonData()
 		{
 			_armatureDataList = new Vector.<ArmatureData>(0, true);
-			_subTexturePivots = {};
 		}
 		
 		public function dispose():void
@@ -28,14 +33,9 @@ package dragonBones.objects
 			{
 				armatureData.dispose();
 			}
-			for(var i:String in _subTexturePivots)
-			{
-				delete _subTexturePivots[i];
-			}
 			_armatureDataList.fixed = false;
 			_armatureDataList.length = 0;
 			//_armatureDataList = null;
-			//_subTexturePivots = null;
 		}
 		
 		public function getArmatureData(armatureName:String):ArmatureData
@@ -92,40 +92,6 @@ package dragonBones.objects
 					_armatureDataList.fixed = false;
 					_armatureDataList.splice(i, 1);
 					_armatureDataList.fixed = true;
-				}
-			}
-		}
-		
-		public function getSubTexturePivot(subTextureName:String):Point
-		{
-			return _subTexturePivots[subTextureName];
-		}
-		
-		public function addSubTexturePivot(x:Number, y:Number, subTextureName:String):void
-		{
-			var point:Point = _subTexturePivots[subTextureName];
-			if(point)
-			{
-				point.x = x;
-				point.y = y;
-			}
-			else
-			{
-				_subTexturePivots[subTextureName] = new Point(x, y);
-			}
-		}
-		
-		public function removeSubTexturePivot(subTextureName:String):void
-		{
-			if(subTextureName)
-			{
-				delete _subTexturePivots[subTextureName];
-			}
-			else
-			{
-				for(subTextureName in _subTexturePivots)
-				{
-					delete _subTexturePivots[subTextureName];
 				}
 			}
 		}

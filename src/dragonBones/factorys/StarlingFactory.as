@@ -99,17 +99,19 @@
 		 */
 		override protected function generateTextureDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
 		{
+			
+			//1.4
 			var starlingTextureAtlas:StarlingTextureAtlas = textureAtlas as StarlingTextureAtlas;
 			if (starlingTextureAtlas)
 			{
-				//1.4
 				var subTextureData:SubTextureData = starlingTextureAtlas.getRegion(fullName) as SubTextureData;
 				if (subTextureData)
 				{
 					pivotX = pivotX || subTextureData.pivotX;
 					pivotY = pivotY || subTextureData.pivotY;
 				}
-			}			
+			}
+			
 			var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
 			if (subTexture)
 			{
@@ -150,7 +152,7 @@
 			}
 			else
 			{
-				//
+				throw new Error();
 			}			
 			var textureAtlas:StarlingTextureAtlas = new StarlingTextureAtlas(texture, textureAtlasXML);			
 			if (Starling.handleLostContext)

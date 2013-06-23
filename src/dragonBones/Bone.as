@@ -1,7 +1,12 @@
 ﻿package dragonBones
 {
+	import dragonBones.animation.AnimationState;
 	import dragonBones.core.DBObject;
 	import dragonBones.core.dragonBones_internal;
+	import dragonBones.events.FrameEvent;
+	import dragonBones.events.SoundEvent;
+	import dragonBones.objects.Frame;
+	import dragonBones.objects.TransformFrame;
 	
 	import flash.geom.Point;
 	
@@ -12,10 +17,10 @@
 		//0/1/2
 		public var scaleMode:int;
 		
-		dragonBones_internal var _defaultSlot:Slot;
 		dragonBones_internal var _pivot:Point;
 		
 		private var _children:Vector.<DBObject>;
+		private var _defaultSlot:Slot;
 		
 		public function get childArmature():Armature
 		{
@@ -36,15 +41,7 @@
 		
 		override dragonBones_internal function setArmature(value:Armature):void
 		{
-			if(this._armature)
-			{
-				this._armature.removeBoneFrom(this);
-			}
 			super.setArmature(value);
-			if(this._armature)
-			{
-				this._armature.addBoneTo(this);
-			}
 			var i:int = _children.length;
 			while(i --)
 			{
@@ -88,8 +85,92 @@
 			var pivotY:Number = _pivot.y;
 			if(pivotX || pivotY)
 			{
-				this._globalTransformMatrix.tx -= this._globalTransformMatrix.a * pivotX + this._globalTransformMatrix.c * pivotY;
-				this._globalTransformMatrix.ty -= this._globalTransformMatrix.b * pivotX + this._globalTransformMatrix.d * pivotY;
+				this._globalTransformMatrix.tx += this._globalTransformMatrix.a * pivotX + this._globalTransformMatrix.c * pivotY;
+				this._globalTransformMatrix.ty += this._globalTransformMatrix.b * pivotX + this._globalTransformMatrix.d * pivotY;
+			}
+		}
+		
+		override dragonBones_internal function updateColor(
+			aOffset:Number, 
+			rOffset:Number, 
+			gOffset:Number, 
+			bOffset:Number, 
+			aMultiplier:Number, 
+			rMultiplier:Number, 
+			gMultiplier:Number, 
+			bMultiplier:Number
+		):void
+		{
+			_defaultSlot._displayBridge.updateColor(
+				aOffset, 
+				rOffset, 
+				gOffset, 
+				bOffset, 
+				aMultiplier, 
+				rMultiplier, 
+				gMultiplier, 
+				bMultiplier
+			);
+		}
+		
+		/** @private */
+		override dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		{
+			if(frame)
+			{
+				if(endArrive)
+				{
+					var tansformFrame:TransformFrame = frame as TransformFrame;
+					if(_defaultSlot)
+					{
+						var displayIndex:int = tansformFrame.displayIndex;
+						if(displayIndex >= 0)
+						{
+							if(tansformFrame.zOrder != _defaultSlot._tweenZorder)
+							{
+								_defaultSlot._tweenZorder = tansformFrame.zOrder;
+								_armature._slotsZOrderChanged = true;
+							}
+						}
+						_defaultSlot.changeDisplay(displayIndex);
+						_defaultSlot.visible = tansformFrame.visible;
+					}
+				}
+				
+				if(frame.event && _armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
+				{
+					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
+					frameEvent.object = this;
+					frameEvent.animationState = animationState;
+					frameEvent.frameLabel = frame.event;
+					_armature.dispatchEvent(frameEvent);
+				}
+				
+				if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
+				{
+					var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
+					soundEvent.armature = _armature;
+					soundEvent.object = this;
+					soundEvent.animationState = animationState;
+					soundEvent.sound = frame.sound;
+					_soundManager.dispatchEvent(soundEvent);
+				}
+				
+				if(frame.action)
+				{
+					var childArmature:Armature = this.childArmature;
+					if(childArmature)
+					{
+						childArmature.animation.gotoAndPlay(frame.action);
+					}
+				}
+			}
+			else
+			{
+				if(_defaultSlot)
+				{
+					_defaultSlot.changeDisplay(-1);
+				}
 			}
 		}
 		
@@ -153,6 +234,10 @@
 				{
 					_defaultSlot = null;
 				}
+			}
+			else
+			{
+				throw new ArgumentError();
 			}
 		}
 	}

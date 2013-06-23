@@ -1,10 +1,15 @@
-package dragonBones
+﻿package dragonBones
 {
 	import dragonBones.animation.Animation;
+	import dragonBones.animation.AnimationState;
 	import dragonBones.animation.IAnimatable;
+	import dragonBones.core.DBObject;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.events.ArmatureEvent;
+	import dragonBones.events.FrameEvent;
+	import dragonBones.events.SoundEvent;
 	import dragonBones.objects.DBTransform;
+	import dragonBones.objects.Frame;
 	
 	import flash.geom.ColorTransform;
 	
@@ -108,6 +113,30 @@ package dragonBones
 			
 			//_display = null;
 		}
+		/** @private */
+		override dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		{
+			if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
+			{
+				var frameEvent:FrameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
+				frameEvent.animationState = animationState;
+				frameEvent.frameLabel = frame.event;
+				dispatchEvent(frameEvent);
+			}
+			
+			if(frame.sound && this.hasEventListener(SoundEvent.SOUND))
+			{
+				var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
+				soundEvent.armature = this;
+				soundEvent.animationState = animationState;
+				soundEvent.sound = frame.sound;
+				_soundManager.dispatchEvent(soundEvent);
+			}
+			if(frame.action && endArrive)
+			{
+				animation.gotoAndPlay(frame.action);
+			}
+		}
 		
 		/**
 		 * Update the animation using this method typically in an ENTERFRAME Event or with a Timer.
@@ -182,31 +211,6 @@ package dragonBones
 			return null;
 		}
 		
-		public function addSlot(slot:Slot, parentName:String = null):void
-		{
-			if(!slot)
-			{
-				throw new ArgumentError();
-			}
-			
-			if(parentName)
-			{
-				var boneParent:Bone = getBone(parentName);
-				if (boneParent)
-				{
-					boneParent.addChild(slot);
-				}
-				else
-				{
-					throw new ArgumentError();
-				}
-			}
-			else
-			{
-				this.addChild(slot);
-			}
-		}
-		
 		public function removeSlot(slot:Slot):void
 		{
 			if(!slot)
@@ -243,30 +247,6 @@ package dragonBones
 			return slot?slot.parent:null;
 		}
 		
-		public function addBone(bone:Bone, parentName:String = null):void
-		{
-			if(!bone)
-			{
-				throw new ArgumentError();
-			}
-			if(parentName)
-			{
-				var boneParent:Bone = getBone(parentName);
-				if (boneParent)
-				{
-					boneParent.addChild(bone);
-				}
-				else
-				{
-					throw new ArgumentError();
-				}
-			}
-			else
-			{
-				this.addChild(bone);
-			}
-		}
-		
 		/**
 		 * Remove a Bone instance from this Armature instance.
 		 * @param	The name of the Bone instance to remove.
@@ -289,6 +269,36 @@ package dragonBones
 			}
 		}
 		
+		public function addChildTo(object:DBObject, parentName:String = null):void
+		{
+			if(!object)
+			{
+				throw new ArgumentError();
+			}
+			
+			if(parentName)
+			{
+				var boneParent:Bone = getBone(parentName);
+				if (boneParent)
+				{
+					boneParent.addChild(object);
+				}
+				else
+				{
+					throw new ArgumentError();
+				}
+			}
+			else
+			{
+				this.addChild(object);
+			}
+		}
+		
+		public function addBone(bone:Bone, parentName:String = null):void
+		{
+			addChildTo(bone, parentName);
+		}
+		
 		public function sortSlotsZOrder():void
 		{
 			_slotList.fixed = false;
@@ -307,49 +317,55 @@ package dragonBones
 		}
 		
 		/** @private */
-		dragonBones_internal function addSlotTo(slot:Slot):void
+		dragonBones_internal function addDBObject(object:DBObject):void
 		{
-			if(_slotList.indexOf(slot) < 0)
+			if(object is Slot)
 			{
-				_slotList.fixed = false;
-				_slotList[_slotList.length] = slot;
-				_slotList.fixed = true;
+				var slot:Slot = object as Slot;
+				if(_slotList.indexOf(slot) < 0)
+				{
+					_slotList.fixed = false;
+					_slotList[_slotList.length] = slot;
+					_slotList.fixed = true;
+				}
+			}
+			else if(object is Bone)
+			{
+				var bone:Bone = object as Bone;
+				if(_boneList.indexOf(bone) < 0)
+				{
+					_boneList.fixed = false;
+					_boneList[_boneList.length] = bone;
+					sortBoneList();
+					_boneList.fixed = true;
+				}
 			}
 		}
 		
 		/** @private */
-		dragonBones_internal function removeSlotFrom(slot:Slot):void
+		dragonBones_internal function removeDBObject(object:DBObject):void
 		{
-			var index:int = _slotList.indexOf(slot);
-			if(index >= 0)
+			if(object is Slot)
 			{
-				_slotList.fixed = false;
-				_slotList.splice(index, 1);
-				_slotList.fixed = true;
+				var slot:Slot = object as Slot;
+				var index:int = _slotList.indexOf(slot);
+				if(index >= 0)
+				{
+					_slotList.fixed = false;
+					_slotList.splice(index, 1);
+					_slotList.fixed = true;
+				}
 			}
-		}
-		
-		/** @private */
-		dragonBones_internal function addBoneTo(bone:Bone):void
-		{
-			if(_boneList.indexOf(bone) < 0)
+			else if(object is Bone)
 			{
-				_boneList.fixed = false;
-				_boneList[_boneList.length] = bone;
-				sortBoneList();
-				_boneList.fixed = true;
-			}
-		}
-		
-		/** @private */
-		dragonBones_internal function removeBoneFrom(bone:Bone):void
-		{
-			var index:int = _boneList.indexOf(bone);
-			if(index >= 0)
-			{
-				_boneList.fixed = false;
-				_boneList.splice(index, 1);
-				_boneList.fixed = true;
+				var bone:Bone = object as Bone;
+				index = _boneList.indexOf(bone);
+				if(index >= 0)
+				{
+					_boneList.fixed = false;
+					_boneList.splice(index, 1);
+					_boneList.fixed = true;
+				}
 			}
 		}
 		

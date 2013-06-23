@@ -2,8 +2,11 @@ package dragonBones.core
 {
 	import dragonBones.Armature;
 	import dragonBones.Bone;
+	import dragonBones.animation.AnimationState;
 	import dragonBones.core.dragonBones_internal;
+	import dragonBones.events.SoundEventManager;
 	import dragonBones.objects.DBTransform;
+	import dragonBones.objects.Frame;
 	
 	import flash.events.EventDispatcher;
 	import flash.geom.Matrix;
@@ -12,6 +15,8 @@ package dragonBones.core
 	
 	public class DBObject extends EventDispatcher
 	{	
+		protected static var _soundManager:SoundEventManager = SoundEventManager.getInstance();
+		
 		public var name:String;
 		public var userData:Object;
 		public var fixedRotation:Boolean;
@@ -92,7 +97,15 @@ package dragonBones.core
 		/** @private */
 		dragonBones_internal function setArmature(value:Armature):void
 		{
+			if(_armature)
+			{
+				_armature.removeDBObject(this);
+			}
 			_armature = value;
+			if(_armature)
+			{
+				_armature.addDBObject(this);
+			}
 		}
 		
 		public function DBObject()
@@ -122,6 +135,7 @@ package dragonBones.core
 			_globalTransformMatrix = null;
 		}
 		
+		/** @private */
 		dragonBones_internal function update():void
 		{
 			_global.scaleX = (_origin.scaleX + _tween.scaleX) * _node.scaleX;
@@ -166,6 +180,26 @@ package dragonBones.core
 			_globalTransformMatrix.b = _global.scaleX * Math.sin(_global.skewY);
 			_globalTransformMatrix.c = -_global.scaleY * Math.sin(_global.skewX);
 			_globalTransformMatrix.d = _global.scaleY * Math.cos(_global.skewX);
+		}
+		
+		/** @private */
+		dragonBones_internal function updateColor(
+			aOffset:Number,
+			rOffset:Number,
+			gOffset:Number,
+			bOffset:Number,
+			aMultiplier:Number,
+			rMultiplier:Number,
+			gMultiplier:Number,
+			bMultiplier:Number
+		):void
+		{
+			
+		}
+			
+		/** @private */
+		dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		{
 		}
 	}
 }

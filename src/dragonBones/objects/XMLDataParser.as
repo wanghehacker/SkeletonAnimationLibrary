@@ -206,6 +206,9 @@
 			boneData.global.scaleX = boneData.transform.scaleX = Number(boneXML.@[ConstValues.A_SCALE_X]);
 			boneData.global.scaleY = boneData.transform.scaleY = Number(boneXML.@[ConstValues.A_SCALE_Y]);
 			
+			boneData.pivot.x = -Number(boneXML.@[ConstValues.A_PIVOT_X]);
+			boneData.pivot.y = -Number(boneXML.@[ConstValues.A_PIVOT_Y]);
+			
 			return boneData;
 		}
 		
@@ -213,16 +216,6 @@
 		{
 			var skinData:SkinData = new SkinData();
 			//skinData.name
-			
-			/*
-			
-			var boneXMLList:XMLList = armatureXML[ConstValues.BONE];
-			var i:int = boneXMLList.length();
-			while(i --)
-			{
-				var boneXML:XML = boneXMLList[i];
-			
-			*/
 			for each(var boneXML:XML in armatureXML[ConstValues.BONE])
 			{
 				var slotData:SlotData = new SlotData();
@@ -245,14 +238,14 @@
 						displayData.type = DisplayData.IMAGE;
 					}
 					//
-					displayData.transform.x = Number(boneXML.@[ConstValues.A_PIVOT_X]);
-					displayData.transform.y = Number(boneXML.@[ConstValues.A_PIVOT_Y]);
+					displayData.transform.x = -Number(boneXML.@[ConstValues.A_PIVOT_X]);
+					displayData.transform.y = -Number(boneXML.@[ConstValues.A_PIVOT_Y]);
 					displayData.transform.scaleX = 1;
 					displayData.transform.scaleY = 1;
 					displayData.transform.skewX = 0;
 					displayData.transform.skewY = 0;
-					//
-					_currentSkeletonData.addSubTexturePivot(Number(displayXML.@[ConstValues.A_PIVOT_X]), Number(displayXML.@[ConstValues.A_PIVOT_Y]), displayData.name);
+					displayData.pivot.x = Number(displayXML.@[ConstValues.A_PIVOT_X]);
+					displayData.pivot.y = Number(displayXML.@[ConstValues.A_PIVOT_Y]);
 				}
 			}
 			
@@ -271,21 +264,21 @@
 			
 			parseTimeline(animationXML, animationData, parseMainFrame);
 			
-			var boneAnimationXMLList:XMLList = animationXML[ConstValues.BONE];
-			var i:int = boneAnimationXMLList.length();
+			var timelineXMLList:XMLList = animationXML[ConstValues.BONE];
+			var i:int = timelineXMLList.length();
 			while(i --)
 			{
-				var boneAnimationXML:XML = boneAnimationXMLList[i];
-				var name:String = boneAnimationXML.@[ConstValues.A_NAME];
-				var durationScale:Number = Number(boneAnimationXML.@[ConstValues.A_MOVEMENT_SCALE]);
-				var durationOffset:Number = Number(boneAnimationXML.@[ConstValues.A_MOVEMENT_DELAY]);
+				var timelineXML:XML = timelineXMLList[i];
+				var timelineName:String = timelineXML.@[ConstValues.A_NAME];
+				var durationScale:Number = Number(timelineXML.@[ConstValues.A_MOVEMENT_SCALE]);
+				var durationOffset:Number = Number(timelineXML.@[ConstValues.A_MOVEMENT_DELAY]);
 				
-				var boneTimeline:TransformTimeline = new TransformTimeline();
-				boneTimeline.duration = animationData.duration;
-				boneTimeline.scale = durationScale;
-				boneTimeline.offset = durationOffset;
-				parseTimeline(boneAnimationXML, boneTimeline, parseTransformFrame);
-				animationData.addTimeline(boneTimeline, name);
+				var timeline:TransformTimeline = new TransformTimeline();
+				timeline.duration = animationData.duration;
+				timeline.scale = durationScale;
+				timeline.offset = durationOffset;
+				parseTimeline(timelineXML, timeline, parseTransformFrame);
+				animationData.addTimeline(timeline, timelineName);
 			}
 			
 			DBDataUtils.addHideTimeline(animationData, armatureData);
@@ -324,46 +317,55 @@
 		
 		private static function parseTransformFrame(frameXML:XML):TransformFrame
 		{
-			var transformFrame:TransformFrame = new TransformFrame();
-			parseFrame(frameXML, transformFrame);
+			var frame:TransformFrame = new TransformFrame();
+			parseFrame(frameXML, frame);
 			
-			transformFrame.visible = Boolean(frameXML.@[ConstValues.A_VISIBLE] != "0");
-			transformFrame.tweenEasing = Number(frameXML.@[ConstValues.A_TWEEN_EASING]);
-			transformFrame.tweenRotate = Number(frameXML.@[ConstValues.A_TWEEN_ROTATE]);
-			transformFrame.displayIndex = Number(frameXML.@[ConstValues.A_DISPLAY_INDEX]);
-			transformFrame.zOrder = Number(frameXML.@[ConstValues.A_Z]);
-			//boneFrame.color
+			frame.visible = Boolean(frameXML.@[ConstValues.A_VISIBLE] != "0");
+			frame.tweenEasing = Number(frameXML.@[ConstValues.A_TWEEN_EASING]);
+			frame.tweenRotate = Number(frameXML.@[ConstValues.A_TWEEN_ROTATE]);
+			frame.displayIndex = Number(frameXML.@[ConstValues.A_DISPLAY_INDEX]);
+			frame.zOrder = Number(frameXML.@[ConstValues.A_Z]);
 			
-			transformFrame.global = new DBTransform();
+			frame.global = new DBTransform();
 			
-			transformFrame.global.x = 
-				transformFrame.transform.x = Number(frameXML.@[ConstValues.A_X]);
+			frame.global.x = 
+				frame.transform.x = Number(frameXML.@[ConstValues.A_X]);
 			
-			transformFrame.global.y = 
-				transformFrame.transform.y =  Number(frameXML.@[ConstValues.A_Y]);
+			frame.global.y = 
+				frame.transform.y =  Number(frameXML.@[ConstValues.A_Y]);
 			
-			transformFrame.global.skewX = 
-				transformFrame.transform.skewX = Number(frameXML.@[ConstValues.A_SKEW_X]) * ANGLE_TO_RADIAN;
+			frame.global.skewX = 
+				frame.transform.skewX = Number(frameXML.@[ConstValues.A_SKEW_X]) * ANGLE_TO_RADIAN;
 			
-			transformFrame.global.skewY = 
-				transformFrame.transform.skewY = Number(frameXML.@[ConstValues.A_SKEW_Y]) * ANGLE_TO_RADIAN;
+			frame.global.skewY = 
+				frame.transform.skewY = Number(frameXML.@[ConstValues.A_SKEW_Y]) * ANGLE_TO_RADIAN;
 			
-			transformFrame.global.scaleX = 
-				transformFrame.transform.scaleX = Number(frameXML.@[ConstValues.A_SCALE_X]);
+			frame.global.scaleX = 
+				frame.transform.scaleX = Number(frameXML.@[ConstValues.A_SCALE_X]);
 			
-			transformFrame.global.scaleY = 
-				transformFrame.transform.scaleY = Number(frameXML.@[ConstValues.A_SCALE_Y]);
+			frame.global.scaleY = 
+				frame.transform.scaleY = Number(frameXML.@[ConstValues.A_SCALE_Y]);
 			
-			var pivotX:Number = Number(frameXML.@[ConstValues.A_PIVOT_X]);
-			var pivotY:Number = Number(frameXML.@[ConstValues.A_PIVOT_Y]);
-			if(pivotX || pivotY)
+			frame.pivot.x = -Number(frameXML.@[ConstValues.A_PIVOT_X]);
+			frame.pivot.y = -Number(frameXML.@[ConstValues.A_PIVOT_Y]);
+			
+			var colorTransformXML:XML = frameXML[ConstValues.COLOR_TRANSFORM][0];
+			if(colorTransformXML)
 			{
-				transformFrame.pivot = new Point();
-				transformFrame.pivot.x = pivotX;
-				transformFrame.pivot.y = pivotY;
+				frame.color = new ColorTransform();
+				frame.color.alphaOffset = Number(colorTransformXML.@[ConstValues.A_ALPHA]);
+				frame.color.redOffset = Number(colorTransformXML.@[ConstValues.A_RED]);
+				frame.color.greenOffset = Number(colorTransformXML.@[ConstValues.A_GREEN]);
+				frame.color.blueOffset = Number(colorTransformXML.@[ConstValues.A_BLUE]);
+				
+				frame.color.alphaMultiplier = Number(colorTransformXML.@[ConstValues.A_ALPHA_MULTIPLIER]) * 0.01;
+				frame.color.redMultiplier = Number(colorTransformXML.@[ConstValues.A_RED_MULTIPLIER]) * 0.01;
+				frame.color.greenMultiplier = Number(colorTransformXML.@[ConstValues.A_GREEN_MULTIPLIER]) * 0.01;
+				frame.color.blueMultiplier = Number(colorTransformXML.@[ConstValues.A_BLUE_MULTIPLIER]) * 0.01;
 			}
+			//
 			
-			return transformFrame;
+			return frame;
 		}
 	}
 }

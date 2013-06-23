@@ -22,11 +22,8 @@ package dragonBones.display
 	 */
 	public class NativeDisplayBridge implements IDisplayBridge
 	{
-		
-		/**
-		 * @private
-		 */
-		protected var _display:DisplayObject;
+		private var _display:DisplayObject;
+		private var _colorTransform:ColorTransform;
 		
 		/**
 		 * @inheritDoc
@@ -57,6 +54,9 @@ package dragonBones.display
 			addDisplay(parent, index);
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function get visible():Boolean
 		{
 			return _display?_display.visible:false;
@@ -76,13 +76,40 @@ package dragonBones.display
 		/**
 		 * @inheritDoc
 		 */
-		public function update(matrix:Matrix, transform:DBTransform, colorTransform:ColorTransform):void
+		public function updateTransform(matrix:Matrix, transform:DBTransform):void
 		{
 			_display.transform.matrix = matrix;
-			if (colorTransform)
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function updateColor(
+			aOffset:Number, 
+			rOffset:Number, 
+			gOffset:Number, 
+			bOffset:Number, 
+			aMultiplier:Number, 
+			rMultiplier:Number, 
+			gMultiplier:Number, 
+			bMultiplier:Number
+		):void
+		{
+			if(!_colorTransform)
 			{
-				_display.transform.colorTransform = colorTransform;
+				_colorTransform = _display.transform.colorTransform;
 			}
+			_colorTransform.alphaOffset = aOffset;
+			_colorTransform.redOffset = rOffset;
+			_colorTransform.greenOffset = gOffset;
+			_colorTransform.blueOffset = bOffset;
+			
+			_colorTransform.alphaMultiplier = aMultiplier;
+			_colorTransform.redMultiplier = rMultiplier;
+			_colorTransform.greenMultiplier = gMultiplier;
+			_colorTransform.blueMultiplier = bMultiplier;
+			
+			_display.transform.colorTransform = _colorTransform;
 		}
 		
 		/**

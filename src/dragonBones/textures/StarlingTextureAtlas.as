@@ -121,8 +121,8 @@
 				var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;				
 				//1.4
 				var region:SubTextureData = new SubTextureData(x, y, width, height);
-				region.pivotX = int(subTexture.attribute(ConstValues.A_PIVOT_X));
-				region.pivotY = int(subTexture.attribute(ConstValues.A_PIVOT_Y));				
+				region.pivotX = -Number(subTexture.attribute(ConstValues.A_PIVOT_X));
+				region.pivotY = -Number(subTexture.attribute(ConstValues.A_PIVOT_Y));				
 				var frame:Rectangle = frameWidth > 0 && frameHeight > 0 ? new Rectangle(frameX, frameY, frameWidth, frameHeight) : null;				
 				addRegion(name, region, frame);
 			}

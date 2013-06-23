@@ -72,6 +72,16 @@
 		private var _isPlaying:Boolean;
 		private var _animationLayer:Vector.<Vector.<AnimationState>>;
 		
+		public function get movementList():Vector.<String>
+		{
+			return _animationList;
+		}
+		
+		public function get movementID():String
+		{
+			return _lastAnimationState?_lastAnimationState.name:null;
+		}
+		
 		private var _timeScale:Number = 1;
 		public function get timeScale():Number
 		{
@@ -92,19 +102,9 @@
 			return _lastAnimationState;
 		}
 		
-		public function get movementID():String
-		{
-			return _lastAnimationState?_lastAnimationState.name:null;
-		}
-		
 		private var _animationList:Vector.<String>;
 		
 		public function get animationList():Vector.<String>
-		{
-			return _animationList;
-		}
-		
-		public function get movementList():Vector.<String>
 		{
 			return _animationList;
 		}
@@ -171,11 +171,14 @@
 		 */
 		public function gotoAndPlay(
 			animationName:String, 
-			fadeTime:Number = -1, 
+			fadeInTime:Number = -1, 
 			timeScale:Number = -1, 
 			loop:Number = NaN, 
 			layer:uint = 0, 
-			playMode:int = 1
+			playMode:int = 1,
+			blendMode:int = 1,
+			pauseFadeOut:Boolean = true,
+			pauseFadeIn:Boolean = true
 		):void
 		{
 			if (!_animationDataList)
@@ -199,7 +202,7 @@
 			_isPlaying = true;
 			
 			//
-			fadeTime = fadeTime < 0?(animationData.fadeTime < 0?0.3:animationData.fadeTime):fadeTime;
+			fadeInTime = fadeInTime < 0?(animationData.fadeTime < 0?0.3:animationData.fadeTime):fadeInTime;
 			//
 			timeScale = timeScale < 0?(animationData.scale < 0?1:animationData.scale):timeScale;
 			//
@@ -218,7 +221,7 @@
 					i = animationStateList.length;
 					while(i --)
 					{
-						animationStateList[i].fadeOut(fadeTime, true);
+						animationStateList[i].fadeOut(fadeInTime, pauseFadeOut);
 					}
 					break;
 				case 2:
@@ -230,7 +233,7 @@
 						i = animationStateList.length;
 						while(i --)
 						{
-							animationStateList[i].fadeOut(fadeTime, true);
+							animationStateList[i].fadeOut(fadeInTime, pauseFadeOut);
 						}
 					}
 					break;
@@ -247,8 +250,9 @@
 			}
 			
 			_lastAnimationState = AnimationState.borrowObject();
+			_lastAnimationState.blendMode = blendMode;
 			addState(_lastAnimationState);
-			_lastAnimationState.fadeIn(_armature, animationData, fadeTime, loop, layer, timeScale, true);
+			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, loop, layer, timeScale, pauseFadeIn);
 		}
 		
 		/**
@@ -354,7 +358,7 @@
 							{
 								animationState._displayControl = false;
 							}
-							if(!animationState.advanceTime(passedTime))
+							if(animationState.advanceTime(passedTime))
 							{
 								AnimationState.returnObject(animationStateList[j]);
 								animationStateList.splice(j, 1);
@@ -367,14 +371,14 @@
 						}
 						
 						if(
-							animationState._mixingBoneList.length > 0
+							animationState._mixingList.length > 0
 							?
-							animationState._mixingBoneList.indexOf(boneName) >= 0
+							animationState._mixingList.indexOf(boneName) >= 0
 							:
 							true
 						)
 						{
-							var timelineState:TimelineState = animationState._boneTimelineStates[boneName];
+							var timelineState:TimelineState = animationState._timelineStates[boneName];
 							
 							if(timelineState)
 							{

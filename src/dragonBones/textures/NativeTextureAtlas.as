@@ -135,8 +135,8 @@ package dragonBones.textures
 				subTextureData.width = int(subTextureXML.attribute(ConstValues.A_WIDTH)) / scale;
 				subTextureData.height = int(subTextureXML.attribute(ConstValues.A_HEIGHT)) / scale;
 				//1.4
-				subTextureData.pivotX = int(subTextureXML.attribute(ConstValues.A_PIVOT_X));
-				subTextureData.pivotY = int(subTextureXML.attribute(ConstValues.A_PIVOT_Y));
+				subTextureData.pivotX = -Number(subTextureXML.attribute(ConstValues.A_PIVOT_X));
+				subTextureData.pivotY = -Number(subTextureXML.attribute(ConstValues.A_PIVOT_Y));
 				_subTextureDataDic[subTextureName] = subTextureData;
 			}
 		}

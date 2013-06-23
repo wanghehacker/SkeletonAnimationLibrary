@@ -1,16 +1,16 @@
 ﻿package dragonBones.objects
 {
+	import flash.geom.ColorTransform;
 	import flash.geom.Point;
 
 	final public class TransformFrame extends Frame
 	{
 		public var tweenEasing:Number;
-		//
 		public var tweenRotate:int;
 		public var visible:Boolean;
 		public var displayIndex:int;
 		public var zOrder:Number;
-		//public var color:Object;
+		public var color:ColorTransform;
 		
 		public var global:DBTransform;
 		public var transform:DBTransform;

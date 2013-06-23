@@ -9,12 +9,30 @@ package dragonBones
 	
 	public class Slot extends DBObject
 	{
-		public var zOrder:Number;
-		
 		/** @private */
 		dragonBones_internal var _dislayDataList:Vector.<DisplayData>;
 		/** @private */
 		dragonBones_internal var _displayBridge:IDisplayBridge;
+		/** @private */
+		dragonBones_internal var _originZOrder:Number;
+		/** @private */
+		dragonBones_internal var _tweenZorder:Number;
+		
+		private var _offsetZOrder:Number;
+		
+		public function get zOrder():Number
+		{
+			return _originZOrder + _tweenZorder + _offsetZOrder;
+		}
+		
+		public function set zOrder(value:Number):void
+		{
+			if(zOrder != value)
+			{
+				_offsetZOrder = value - _originZOrder - _tweenZorder;
+				this._armature._slotsZOrderChanged = true;
+			}
+		}
 		
 		private var _displayIndex:int;
 		
@@ -130,14 +148,9 @@ package dragonBones
 		
 		override dragonBones_internal function setArmature(value:Armature):void
 		{
-			if(this._armature)
-			{
-				this._armature.removeSlotFrom(this);
-			}
 			super.setArmature(value);
 			if(this._armature)
 			{
-				this._armature.addSlotTo(this);
 				_displayBridge.addDisplay(this._armature.display);
 			}
 			else
@@ -153,7 +166,10 @@ package dragonBones
 			_displayList = [];
 			_displayIndex = -1;
 			_scaleType = 1;
-			zOrder = 0;
+			
+			_originZOrder = 0;
+			_tweenZorder = 0;
+			_offsetZOrder = 0;
 		}
 		
 		override public function dispose():void
@@ -174,27 +190,7 @@ package dragonBones
 			
 			if(_displayBridge.display)
 			{
-				/*
-				var colorTransform:ColorTransform;
-				
-				if(_tween._differentColorTransform)
-				{
-				if(_armature.colorTransform)
-				{
-				_tweenColorTransform.concat(_armature.colorTransform);
-				}
-				colorTransform = _tweenColorTransform;
-				}
-				else if(_armature._colorTransformChange)
-				{
-				colorTransform = _armature.colorTransform;
-				}
-				*/
-				_displayBridge.update(
-					this._globalTransformMatrix,
-					this._global,
-					null
-				);
+				_displayBridge.updateTransform(this._globalTransformMatrix, this._global);
 			}
 		}
 	}

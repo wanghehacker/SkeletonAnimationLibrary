@@ -5,6 +5,8 @@ package dragonBones.utils
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.Frame;
+	import dragonBones.objects.SkinData;
+	import dragonBones.objects.SlotData;
 	import dragonBones.objects.TransformFrame;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.ConstValues;
@@ -35,16 +37,19 @@ package dragonBones.utils
 		
 		public static function transformAnimationData(animationData:AnimationData, armatureData:ArmatureData):void
 		{
+			var skinData:SkinData = armatureData.getSkinData(null);
 			var i:int = armatureData.boneDataList.length;
 			
 			while(i --)
 			{
 				var boneData:BoneData = armatureData.boneDataList[i];
-				var boneTimeline:TransformTimeline = animationData.getTimeline(boneData.name);
-				if(!boneTimeline)
+				var timeline:TransformTimeline = animationData.getTimeline(boneData.name);
+				if(!timeline)
 				{
 					continue;
 				}
+				
+				var slotData:SlotData = skinData.getSlotData(boneData.name);
 				
 				if(boneData.parent)
 				{
@@ -55,56 +60,60 @@ package dragonBones.utils
 					parentTimeline = null;
 				}
 				
-				var frameList:Vector.<Frame> = boneTimeline.frameList;
+				var frameList:Vector.<Frame> = timeline.frameList;
 				
 				var originTransform:DBTransform = null;
 				var originPivot:Point = null;
 				var length:uint = frameList.length;
 				for(var j:int = 0;j < length;j ++)
 				{
-					var boneFrame:TransformFrame = frameList[j] as TransformFrame;
+					var frame:TransformFrame = frameList[j] as TransformFrame;
 					if(parentTimeline)
 					{
 						//tweenValues to transform.
-						_helpTransform1.copy(boneFrame.global);
+						_helpTransform1.copy(frame.global);
 						
 						//get transform from parent timeline.
-						getTimelineTransform(parentTimeline, boneFrame.position, _helpTransform2);
+						getTimelineTransform(parentTimeline, frame.position, _helpTransform2);
 						TransformUtils.transformPointWithParent(_helpTransform1, _helpTransform2);
 						
 						//transform to tweenValues.
-						boneFrame.transform.copy(_helpTransform1);
+						frame.transform.copy(_helpTransform1);
 					}
 					
-					boneFrame.transform.x -= boneData.transform.x;
-					boneFrame.transform.y -= boneData.transform.y;
-					boneFrame.transform.skewX -= boneData.transform.skewX;
-					boneFrame.transform.skewY -= boneData.transform.skewY;
-					boneFrame.transform.scaleX -= boneData.transform.scaleX;
-					boneFrame.transform.scaleY -= boneData.transform.scaleY;
+					frame.transform.x -= boneData.transform.x;
+					frame.transform.y -= boneData.transform.y;
+					frame.transform.skewX -= boneData.transform.skewX;
+					frame.transform.skewY -= boneData.transform.skewY;
+					frame.transform.scaleX -= boneData.transform.scaleX;
+					frame.transform.scaleY -= boneData.transform.scaleY;
+					frame.pivot.x -= boneData.pivot.x;
+					frame.pivot.y -= boneData.pivot.y;
 					
 					if(!originTransform)
 					{
-						originTransform = boneTimeline.originTransform;
-						originTransform.copy(boneFrame.transform);
+						originTransform = timeline.originTransform;
+						originTransform.copy(frame.transform);
 						originTransform.skewX = TransformUtils.formatRadian(originTransform.skewX);
 						originTransform.skewY = TransformUtils.formatRadian(originTransform.skewY);
-						originPivot = boneTimeline.originPivot;
-						originPivot.x = boneFrame.pivot.x;
-						originPivot.y = boneFrame.pivot.y;
+						originPivot = timeline.originPivot;
+						originPivot.x = frame.pivot.x;
+						originPivot.y = frame.pivot.y;
 					}
 					
-					boneFrame.transform.x -= originTransform.x;
-					boneFrame.transform.y -= originTransform.y;
-					boneFrame.transform.skewX -= originTransform.skewX;
-					boneFrame.transform.skewY -= originTransform.skewY;
-					boneFrame.transform.scaleX -= originTransform.scaleX;
-					boneFrame.transform.scaleY -= originTransform.scaleY;
-					boneFrame.pivot.x -= originPivot.x;
-					boneFrame.pivot.y -= originPivot.y;
+					frame.transform.x -= originTransform.x;
+					frame.transform.y -= originTransform.y;
+					frame.transform.skewX -= originTransform.skewX;
+					frame.transform.skewY -= originTransform.skewY;
+					frame.transform.scaleX -= originTransform.scaleX;
+					frame.transform.scaleY -= originTransform.scaleY;
+					frame.pivot.x -= originPivot.x;
+					frame.pivot.y -= originPivot.y;
 					
-					boneFrame.transform.skewX = TransformUtils.formatRadian(boneFrame.transform.skewX);
-					boneFrame.transform.skewY = TransformUtils.formatRadian(boneFrame.transform.skewY);
+					frame.transform.skewX = TransformUtils.formatRadian(frame.transform.skewX);
+					frame.transform.skewY = TransformUtils.formatRadian(frame.transform.skewY);
+					
+					frame.zOrder -= slotData.zOrder;
 				}
 			}
 		}
@@ -115,21 +124,21 @@ package dragonBones.utils
 			var i:int = frameList.length;
 			while(i --)
 			{
-				var boneFrame:TransformFrame = frameList[i] as TransformFrame;
-				if(boneFrame.position <= position && boneFrame.position + boneFrame.duration > position)
+				var frame:TransformFrame = frameList[i] as TransformFrame;
+				if(frame.position <= position && frame.position + frame.duration > position)
 				{
-					var progress:Number = (position - boneFrame.position) / boneFrame.duration;
-					var index:Number = frameList.indexOf(boneFrame);
+					var progress:Number = (position - frame.position) / frame.duration;
+					var index:Number = frameList.indexOf(frame);
 					if(index == frameList.length - 1)
 					{
-						retult.copy(boneFrame.global);
+						retult.copy(frame.global);
 					}
 					else
 					{
 						//var nextFrame:BoneFrame = timeline.frameList[index + 1] as BoneFrame;
 						//AnimationState.setOffsetTransform(boneFrame, nextFrame, retult);
 						//TransformUtils.setTweenNode(boneFrame.transformGlobal, retult, retult, progress);
-						retult.copy(boneFrame.global);
+						retult.copy(frame.global);
 					}
 				}
 			}

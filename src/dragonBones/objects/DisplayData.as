@@ -1,5 +1,7 @@
 ﻿package dragonBones.objects
 {
+	import flash.geom.Point;
+
 	final public class DisplayData
 	{
 		public static const ARMATURE:String = "armature";
@@ -8,10 +10,12 @@
 		public var name:String;
 		public var type:String;
 		public var transform:DBTransform;
+		public var pivot:Point;
 		
 		public function DisplayData()
 		{
 			transform = new DBTransform();
+			pivot = new Point();
 		}
 	}
 }

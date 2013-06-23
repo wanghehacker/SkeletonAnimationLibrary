@@ -41,27 +41,27 @@ package dragonBones.objects
 		{
 			super.dispose();
 			
-			for(var boneName:String in _timelines)
+			for(var timelineName:String in _timelines)
 			{
-				(_timelines[boneName] as TransformTimeline).dispose();
-				delete _timelines[boneName];
+				(_timelines[timelineName] as TransformTimeline).dispose();
+				delete _timelines[timelineName];
 			}
 			//_timelines = null;
 		}
 		
-		public function getTimeline(boneName:String):TransformTimeline
+		public function getTimeline(timelineName:String):TransformTimeline
 		{
-			return _timelines[boneName] as TransformTimeline;
+			return _timelines[timelineName] as TransformTimeline;
 		}
 		
-		public function addTimeline(timeline:TransformTimeline, boneName:String):void
+		public function addTimeline(timeline:TransformTimeline, timelineName:String):void
 		{
 			if(!timeline)
 			{
 				throw new ArgumentError();
 			}
 			
-			_timelines[boneName] = timeline;
+			_timelines[timelineName] = timeline;
 		}
 	}
 }

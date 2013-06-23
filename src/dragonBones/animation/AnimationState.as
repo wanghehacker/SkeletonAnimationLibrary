@@ -5,9 +5,6 @@ package dragonBones.animation
 	import dragonBones.Slot;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.events.AnimationEvent;
-	import dragonBones.events.FrameEvent;
-	import dragonBones.events.SoundEvent;
-	import dragonBones.events.SoundEventManager;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.Frame;
@@ -17,8 +14,6 @@ package dragonBones.animation
 
 	final public class AnimationState
 	{
-		private static var _soundManager:SoundEventManager = SoundEventManager.getInstance();
-		
 		private static var _pool:Vector.<AnimationState> = new Vector.<AnimationState>;
 		
 		/** @private */
@@ -58,11 +53,12 @@ package dragonBones.animation
 		public var enabled:Boolean;
 		public var tweenEnabled:Boolean;
 		public var weight:Number;
+		public var blendMode:int;
 		
 		/** @private */
-		dragonBones_internal var _boneTimelineStates:Object;
+		dragonBones_internal var _timelineStates:Object;
 		/** @private */
-		dragonBones_internal var _mixingBoneList:Vector.<String>;
+		dragonBones_internal var _mixingList:Vector.<String>;
 		/** @private */
 		dragonBones_internal var _displayControl:Boolean;
 		
@@ -70,9 +66,9 @@ package dragonBones.animation
 		private var _currentFrame:Frame;
 		
 		private var _fadeState:int;
-		private var _fadeInLength:Number;
-		private var _fadeOutLength:Number;
-		private var _fadeOutStart:Number;
+		private var _fadeInTime:Number;
+		private var _fadeOutTime:Number;
+		private var _fadeOutBeginTime:Number;
 		private var _fadeOutWeight:Number;
 		private var _fadeIn:Boolean;
 		private var _fadeOut:Boolean;
@@ -114,6 +110,18 @@ package dragonBones.animation
 			return _totalTime;
 		}
 		
+		private var _isPlaying:Boolean;
+		public function get isPlaying():Boolean
+		{
+			return _isPlaying; 
+		}
+		
+		private var _isComplete:Boolean;
+		public function get isComplete():Boolean
+		{
+			return _isComplete; 
+		}
+		
 		private var _currentTime:Number;
 		public function get currentTime():Number
 		{
@@ -146,53 +154,29 @@ package dragonBones.animation
 			_timeScale = value;
 		}
 		
-		private var _isPlaying:Boolean;
-		public function get isPlaying():Boolean
-		{
-			return _isPlaying; 
-		}
-		
-		private var _isComplete:Boolean;
-		public function get isComplete():Boolean
-		{
-			return _isComplete; 
-		}
-		
-		private var _blendMode:String;
-		public function get blendMode():String
-		{
-			return _blendMode;
-		}
-		public function set blendMode(value:String):void
-		{
-			_blendMode = value;
-		}
-		
 		public function AnimationState()
 		{ 
-			//_blendMode
-			
-			_boneTimelineStates = {};
-			_mixingBoneList = new Vector.<String>;
+			_timelineStates = {};
+			_mixingList = new Vector.<String>;
 		}
 		
-		dragonBones_internal function fadeIn(armature:Armature, clip:AnimationData, fadeInTime:Number, loopEnd:int, layer:uint, timeScale:Number, pauseBeforeFadeInComplete:Boolean):void
+		dragonBones_internal function fadeIn(armature:Armature, clip:AnimationData, fadeInTime:Number, loop:int, layer:uint, timeScale:Number, pauseBeforeFadeInComplete:Boolean):void
 		{
 			_armature = armature;
 			_clip = clip;
 			_pauseBeforeFadeInComplete = pauseBeforeFadeInComplete;
 			
 			_timeScale = timeScale;
-			_loop = loopEnd;
+			_loop = loop;
 			_layer = layer;
-			_fadeInLength = fadeInTime * _timeScale;
+			_fadeInTime = fadeInTime * _timeScale;
 			
 			_totalTime = _clip.duration;
 			_loopCount = -1;
 			_fadeState = 1;
-			_fadeOutStart = 0;
+			_fadeOutBeginTime = 0;
 			_currentTime = 0;
-			_fadeOutWeight = 1;
+			_fadeOutWeight = NaN;
 			_action = false;
 			_isPlaying = true;
 			_isComplete = false;
@@ -214,13 +198,13 @@ package dragonBones.animation
 				}
 			}
 			
-			for(var boneName:String in _clip.timelines)
+			for(var timelineName:String in _clip.timelines)
 			{
 				var timelineState:TimelineState = TimelineState.borrowObject();
-				var bone:Bone = _armature.getBone(boneName);
-				var timeline:TransformTimeline = _clip.getTimeline(boneName);
-				timelineState.fadeIn(_armature, bone, this, timeline);
-				_boneTimelineStates[boneName] = timelineState;
+				var bone:Bone = _armature.getBone(timelineName);
+				var timeline:TransformTimeline = _clip.getTimeline(timelineName);
+				timelineState.fadeIn(bone, this, timeline);
+				_timelineStates[timelineName] = timelineState;
 			}
 			
 			enabled = true;
@@ -229,14 +213,18 @@ package dragonBones.animation
 		
 		public function fadeOut(fadeOutTime:Number, pause:Boolean = false):void
 		{
+			if(!isNaN(_fadeOutWeight))
+			{
+				return;
+			}
 			_fadeOutWeight = weight;
-			_fadeOutLength = fadeOutTime * _timeScale;
+			_fadeOutTime = fadeOutTime * _timeScale;
 			_fadeState = -1;
-			_fadeOutStart = _currentTime;
+			_fadeOutBeginTime = _currentTime;
 			_isPlaying = !pause;
 			_fadeOut = true;
 			
-			for each(var timelineState:TimelineState in _boneTimelineStates)
+			for each(var timelineState:TimelineState in _timelineStates)
 			{
 				timelineState.fadeOut();
 			}
@@ -259,9 +247,9 @@ package dragonBones.animation
 			//
 			if(_clip.getTimeline(boneName))
 			{
-				if(_mixingBoneList.indexOf(boneName) < 0)
+				if(_mixingList.indexOf(boneName) < 0)
 				{
-					_mixingBoneList[_mixingBoneList.length] = boneName;
+					_mixingList[_mixingList.length] = boneName;
 				}
 			}
 			else
@@ -274,15 +262,15 @@ package dragonBones.animation
 		{
 			if(boneName)
 			{
-				var index:int = _mixingBoneList.indexOf(boneName);
+				var index:int = _mixingList.indexOf(boneName);
 				if(index >= 0)
 				{
-					_mixingBoneList.splice(index, 1);
+					_mixingList.splice(index, 1);
 				}
 			}
 			else
 			{
-				_mixingBoneList.length = 0;
+				_mixingList.length = 0;
 			}
 		}
 		
@@ -290,7 +278,7 @@ package dragonBones.animation
 		{
 			if(!enabled)
 			{
-				return true;
+				return false;
 			}
 			
 			if(_fadeIn)
@@ -375,7 +363,7 @@ package dragonBones.animation
 				}
 				
 				
-				for each(var timeline:TimelineState in _boneTimelineStates)
+				for each(var timeline:TimelineState in _timelineStates)
 				{
 					timeline.update(progress);
 				}
@@ -388,7 +376,7 @@ package dragonBones.animation
 					{
 						if(isArrivedFrame)
 						{
-							arriveFrameData(_currentFrame);
+							_armature.arriveAtFrame(_currentFrame, false, this);
 						}
 						var isArrivedFrame:Boolean = true;
 						if(_currentFrame)
@@ -409,21 +397,7 @@ package dragonBones.animation
 					
 					if(isArrivedFrame)
 					{
-						arriveFrameData(_currentFrame);
-						/*
-						index ++;
-						if(index >= _clip.frameList.length)
-						{
-						index = 0;
-						}
-						var nextFrame:Frame = _clip.frameList[index];
-						
-						if(index == 0 && _loop && _loopCount >= Math.abs(_loop) && (nextFrame.position / _totalTime + _loopCount - _offset) * _scale >= 1)
-						{
-						updateTimeline = updateNothing;
-						}
-						*/
-						//_moveable.arriveAtFrame(_currentFrame);
+						_armature.arriveAtFrame(_currentFrame, true, this);
 					}
 				}
 				
@@ -436,7 +410,7 @@ package dragonBones.animation
 			//update weight and fadeState
 			if(_fadeState > 0)
 			{
-				if(_fadeInLength == 0)
+				if(_fadeInTime == 0)
 				{
 					weight = 1;
 					_fadeState = 0;
@@ -450,14 +424,14 @@ package dragonBones.animation
 				}
 				else
 				{
-					weight = _currentTime / _fadeInLength;
+					weight = _currentTime / _fadeInTime;
 					if(weight >= 1)
 					{
 						weight = 1;
 						_fadeState = 0;
 						if(!_isPlaying)
 						{
-							_currentTime -= _fadeInLength;
+							_currentTime -= _fadeInTime;
 						}
 						_isPlaying = true;
 						if(_armature.hasEventListener(AnimationEvent.FADE_IN_COMPLETE))
@@ -471,7 +445,7 @@ package dragonBones.animation
 			}
 			else if(_fadeState < 0)
 			{
-				if(_fadeOutLength == 0)
+				if(_fadeOutTime == 0)
 				{
 					weight = 0;
 					_fadeState = 0;
@@ -481,11 +455,11 @@ package dragonBones.animation
 						event.animationState = this;
 						_armature.dispatchEvent(event);
 					}
-					return false;
+					return true;
 				}
 				else
 				{
-					weight = (1 - (_currentTime - _fadeOutStart) / _fadeOutLength) * _fadeOutWeight;
+					weight = (1 - (_currentTime - _fadeOutBeginTime) / _fadeOutTime) * _fadeOutWeight;
 					if(weight <= 0)
 					{
 						weight = 0;
@@ -496,37 +470,17 @@ package dragonBones.animation
 							event.animationState = this;
 							_armature.dispatchEvent(event);
 						}
-						return false;
+						return true;
 					}
 				}
 			}
 			
-			return true;
-		}
-		
-		private function arriveFrameData(frame:Frame):void
-		{
-			if(frame.event && _armature.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
+			if(_isComplete && _loop < 0)
 			{
-				var frameEvent:FrameEvent = new FrameEvent(FrameEvent.ANIMATION_FRAME_EVENT);
-				frameEvent.animationState = this;
-				frameEvent.frameLabel = frame.event;
-				_armature.dispatchEvent(frameEvent);
+				fadeOut((_fadeOutWeight || _fadeInTime) / _timeScale, true);
 			}
 			
-			if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
-			{
-				var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
-				soundEvent.armature = _armature;
-				soundEvent.animationState = this;
-				soundEvent.sound = frame.sound;
-				_soundManager.dispatchEvent(soundEvent);
-			}
-			if(frame.action && !_action)
-			{
-				_armature.animation.gotoAndPlay(frame.action);
-				_action = true;
-			}
+			return false;
 		}
 		
 		private function clear():void
@@ -535,13 +489,13 @@ package dragonBones.animation
 			_currentFrame = null;
 			_clip = null;
 			
-			for(var i:String in _boneTimelineStates)
+			for(var i:String in _timelineStates)
 			{
-				TimelineState.returnObject(_boneTimelineStates[i] as TimelineState);
-				delete _boneTimelineStates[i];
+				TimelineState.returnObject(_timelineStates[i] as TimelineState);
+				delete _timelineStates[i];
 			}
 			
-			_mixingBoneList.length = 0;
+			_mixingList.length = 0;
 		}
 	}
 }

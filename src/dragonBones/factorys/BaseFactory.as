@@ -325,24 +325,31 @@ package dragonBones.factorys
 				armature.addBone(bone, boneData.parent);
 			}
 			
-			armature.animation.animationDataList = armatureData.animationDataList;
-			
-			/*
-			animationName = animationName || armatureName;
-			var animationData:AnimationData = armatureData.getAnimationData(animationName);			
-			if(!animationData)
+			if(animationName && animationName != armatureName)
 			{
-				for (skeletonName in _skeletonDataDic)
+				var animationArmatureData:ArmatureData = skeletonData.getArmatureData(animationName);
+				if(!animationArmatureData)
 				{
-					skeletonData = _skeletonDataDic[skeletonName];
-					animationData = skeletonData.getAnimationData(animationName);
-					if(animationData)
+					for (skeletonName in _skeletonDataDic)
 					{
-						break;
+						skeletonData = _skeletonDataDic[skeletonName];
+						animationArmatureData = skeletonData.getArmatureData(animationName);
+						if(animationArmatureData)
+						{
+							break;
+						}
 					}
 				}
 			}
-			*/
+			
+			if(animationArmatureData)
+			{
+				armature.animation.animationDataList = animationArmatureData.animationDataList;
+			}
+			else
+			{
+				armature.animation.animationDataList = armatureData.animationDataList;
+			}
 			
 			var skinData:SkinData = armatureData.getSkinData(skinName);
 			for each(var slotData:SlotData in skinData.slotDataList)
@@ -354,7 +361,7 @@ package dragonBones.factorys
 				}
 				var slot:Slot = generateSlot();
 				slot.name = slotData.name;
-				slot.zOrder = slotData.zOrder;
+				slot._originZOrder = slotData.zOrder;
 				slot._dislayDataList = slotData.displayDataList;
 				
 				var i:int = slotData.displayDataList.length;
@@ -374,7 +381,7 @@ package dragonBones.factorys
 							break;
 						case DisplayData.IMAGE:
 						default:
-							slot.display = getTextureDisplay(displayData.name, _currentTextureAtlasName);
+							slot.display = generateTextureDisplay(_textureAtlasDic[_currentTextureAtlasName], displayData.name, displayData.pivot.x, displayData.pivot.y);
 							break;
 						
 					}
@@ -418,19 +425,20 @@ package dragonBones.factorys
 			}
 			if(textureAtlas)
 			{
-				if(isNaN(pivotX) || isNaN(pivotY))
+				
+				/*if(isNaN(pivotX) || isNaN(pivotY))
 				{
 					var skeletonData:SkeletonData = _skeletonDataDic[textureAtlasName];
 					if(skeletonData)
 					{
-						var subTexturePivot:Point = skeletonData.getSubTexturePivot(textureName);
-						if(subTexturePivot)
+						var displayData:DisplayData = skeletonData.getDisplayData(textureName);
+						if(displayData)
 						{
-							pivotX = pivotX || subTexturePivot.x;
-							pivotY = pivotY || subTexturePivot.y;
+							pivotX = pivotX || displayData.pivotX;
+							pivotY = pivotY || displayData.pivotY;
 						}
 					}
-				}
+				}*/
 				
 				return generateTextureDisplay(textureAtlas, textureName, pivotX, pivotY);
 			}
@@ -522,7 +530,7 @@ package dragonBones.factorys
 						}
 						catch(e:Error)
 						{
-							throw "Can not get the movie clip, please make sure the version of the resource compatible with app version!";
+							throw new Error("Can not get the movie clip, please make sure the version of the resource compatible with app version!");
 						}
 					}
 				}
@@ -535,18 +543,23 @@ package dragonBones.factorys
 						//1.4
 						pivotX = pivotX || subTextureData.pivotX;
 						pivotY = pivotY || subTextureData.pivotY;
+						
 						_helpMatirx.a = 1;
 						_helpMatirx.b = 0;
 						_helpMatirx.c = 0;
 						_helpMatirx.d = 1;
 						_helpMatirx.scale(nativeTextureAtlas.scale, nativeTextureAtlas.scale);
-						_helpMatirx.tx = -subTextureData.x - pivotX;
-						_helpMatirx.ty = -subTextureData.y - pivotY;
+						_helpMatirx.tx += subTextureData.x + pivotX;
+						_helpMatirx.ty += subTextureData.y + pivotY;
 						
 						displayShape.graphics.beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatirx, false, true);
-						displayShape.graphics.drawRect(-pivotX, -pivotY, subTextureData.width, subTextureData.height);
+						displayShape.graphics.drawRect(pivotX, pivotY, subTextureData.width, subTextureData.height);
 						return displayShape;
 					}
+				}
+				else
+				{
+					throw new Error();
 				}
 			}
 			return null;

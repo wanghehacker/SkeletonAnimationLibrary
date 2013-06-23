@@ -29,10 +29,29 @@ package dragonBones.display
 		 * Updates the transform of the display object
 		 * @param	matrix
 		 * @param	transform
-		 * @param	pivot
-		 * @param	colorTransform
 		 */
-		function update(matrix:Matrix, transform:DBTransform, colorTransform:ColorTransform):void;
+		function updateTransform(matrix:Matrix, transform:DBTransform):void;
+		/**
+		 * Updates the color of the display object
+		 * @param	a
+		 * @param	r
+		 * @param	g
+		 * @param	b
+		 * @param	aM
+		 * @param	rM
+		 * @param	gM
+		 * @param	bM
+		 */
+		function updateColor(
+			aOffset:Number, 
+			rOffset:Number, 
+			gOffset:Number, 
+			bOffset:Number, 
+			aMultiplier:Number, 
+			rMultiplier:Number, 
+			gMultiplier:Number, 
+			bMultiplier:Number
+		):void;
 		/**
 		 * Adds the original display object to another display object.
 		 * @param	container

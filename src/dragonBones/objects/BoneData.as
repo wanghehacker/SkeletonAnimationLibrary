@@ -1,5 +1,7 @@
 package dragonBones.objects
 {
+	import flash.geom.Point;
+
 	final public class BoneData
 	{
 		public var name:String;
@@ -8,11 +10,13 @@ package dragonBones.objects
 		
 		public var global:DBTransform;
 		public var transform:DBTransform;
+		public var pivot:Point;
 		
 		public function BoneData()
 		{
 			length = 0;
 			transform = new DBTransform();
+			pivot = new Point();
 		}
 	}
 }

@@ -23,10 +23,7 @@
 	 */
 	public class StarlingDisplayBridge implements IDisplayBridge
 	{
-		/**
-		 * @private
-		 */
-		protected var _display:Object;
+		private var _display:Object;
 		/**
 		 * @inheritDoc
 		 */
@@ -43,25 +40,6 @@
 			{
 				return;
 			}
-			
-			//Thanks Jian
-			/*
-			if (_display is Image && value is Image)
-			{
-				var from:Image = _display as Image;
-				var to:Image = value as Image;
-				if (from.texture == to.texture)
-				{
-					return;
-				}
-				
-				from.texture = to.texture;
-				from.pivotX = to.pivotX;
-				from.pivotY = to.pivotY;
-				from.readjustSize();
-				return;
-			}
-			*/
 			
 			if (_display)
 			{
@@ -95,7 +73,7 @@
 		/**
 		 * @inheritDoc
 		 */
-		public function update(matrix:Matrix, transform:DBTransform, colorTransform:ColorTransform):void
+		public function updateTransform(matrix:Matrix, transform:DBTransform):void
 		{
 			var pivotX:Number = _display.pivotX;
 			var pivotY:Number = _display.pivotY;
@@ -109,11 +87,26 @@
 			//{
 			_display.transformationMatrix.copyFrom(matrix);
 			//}
-			
-			if (colorTransform && _display is Quad)
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function updateColor(
+			aOffset:Number, 
+			rOffset:Number, 
+			gOffset:Number, 
+			bOffset:Number, 
+			aMultiplier:Number, 
+			rMultiplier:Number, 
+			gMultiplier:Number, 
+			bMultiplier:Number
+		):void
+		{
+			if (_display is Quad)
 			{
-				(_display as Quad).alpha = colorTransform.alphaMultiplier;
-				(_display as Quad).color = (uint(colorTransform.redMultiplier * 0xff) << 16) + (uint(colorTransform.greenMultiplier * 0xff) << 8) + uint(colorTransform.blueMultiplier * 0xff);
+				(_display as Quad).alpha = aMultiplier;
+				(_display as Quad).color = (uint(rMultiplier * 0xff) << 16) + (uint(gMultiplier * 0xff) << 8) + uint(bMultiplier * 0xff);
 			}
 		}
 		
