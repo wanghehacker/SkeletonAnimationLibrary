@@ -7,6 +7,7 @@ package dragonBones.objects
 	final public class AnimationData extends Timeline
 	{
 		public var name:String;
+		public var frameRate:uint;
 		public var loop:int;
 		public var tweenEasing:Number;
 		
@@ -46,7 +47,7 @@ package dragonBones.objects
 				(_timelines[timelineName] as TransformTimeline).dispose();
 				delete _timelines[timelineName];
 			}
-			//_timelines = null;
+			_timelines = null;
 		}
 		
 		public function getTimeline(timelineName:String):TransformTimeline

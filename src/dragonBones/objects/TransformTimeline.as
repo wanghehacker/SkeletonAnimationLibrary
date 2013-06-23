@@ -40,5 +40,12 @@ package dragonBones.objects
 			originTransform = new DBTransform();
 			originPivot = new Point();
 		}
+		
+		override public function dispose():void
+		{
+			super.dispose();
+			originTransform = null;
+			originPivot = null;
+		}
 	}
 }

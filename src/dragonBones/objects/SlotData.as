@@ -20,9 +20,14 @@ package dragonBones.objects
 		
 		public function dispose():void
 		{
+			var i:int = _displayDataList.length;
+			while(i --)
+			{
+				_displayDataList[i].dispose();
+			}
 			_displayDataList.fixed = false;
 			_displayDataList.length = 0;
-			//_displayDataList = null;
+			_displayDataList = null;
 		}
 		
 		public function addDisplayData(displayData:DisplayData):void

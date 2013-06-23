@@ -73,7 +73,6 @@ package dragonBones.animation
 		private var _fadeIn:Boolean;
 		private var _fadeOut:Boolean;
 		private var _pauseBeforeFadeInComplete:Boolean;
-		private var _action:Boolean;
 		
 		public function get name():String
 		{
@@ -177,7 +176,6 @@ package dragonBones.animation
 			_fadeOutBeginTime = 0;
 			_currentTime = 0;
 			_fadeOutWeight = NaN;
-			_action = false;
 			_isPlaying = true;
 			_isComplete = false;
 			_displayControl = false;
@@ -376,7 +374,7 @@ package dragonBones.animation
 					{
 						if(isArrivedFrame)
 						{
-							_armature.arriveAtFrame(_currentFrame, false, this);
+							_armature.arriveAtFrame(_currentFrame, _isPlaying, this);
 						}
 						var isArrivedFrame:Boolean = true;
 						if(_currentFrame)
@@ -397,7 +395,7 @@ package dragonBones.animation
 					
 					if(isArrivedFrame)
 					{
-						_armature.arriveAtFrame(_currentFrame, true, this);
+						_armature.arriveAtFrame(_currentFrame, _isPlaying, this);
 					}
 				}
 				

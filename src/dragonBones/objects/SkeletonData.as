@@ -1,10 +1,12 @@
 package dragonBones.objects 
 {
+	import flash.geom.Point;
+
 	final public class SkeletonData
 	{
 		public var name:String;
 		
-		public var frameRate:uint;
+		private var _subTexturePivots:Object;
 		
 		public function get armatureNames():Vector.<String>
 		{
@@ -25,6 +27,7 @@ package dragonBones.objects
 		public function SkeletonData()
 		{
 			_armatureDataList = new Vector.<ArmatureData>(0, true);
+			_subTexturePivots = {};
 		}
 		
 		public function dispose():void
@@ -35,7 +38,13 @@ package dragonBones.objects
 			}
 			_armatureDataList.fixed = false;
 			_armatureDataList.length = 0;
-			//_armatureDataList = null;
+			
+			for(var subTextureName:String in _subTexturePivots)
+			{
+				delete _subTexturePivots[subTextureName];
+			}
+			_armatureDataList = null;
+			_subTexturePivots = null;
 		}
 		
 		public function getArmatureData(armatureName:String):ArmatureData
@@ -92,6 +101,40 @@ package dragonBones.objects
 					_armatureDataList.fixed = false;
 					_armatureDataList.splice(i, 1);
 					_armatureDataList.fixed = true;
+				}
+			}
+		}
+		
+		public function getSubTexturePivot(subTextureName:String):Point
+		{
+			return _subTexturePivots[subTextureName];
+		}
+		
+		public function addSubTexturePivot(x:Number, y:Number, subTextureName:String):void
+		{
+			var point:Point = _subTexturePivots[subTextureName];
+			if(point)
+			{
+				point.x = x;
+				point.y = y;
+			}
+			else
+			{
+				_subTexturePivots[subTextureName] = new Point(x, y);
+			}
+		}
+		
+		public function removeSubTexturePivot(subTextureName:String):void
+		{
+			if(subTextureName)
+			{
+				delete _subTexturePivots[subTextureName];
+			}
+			else
+			{
+				for(subTextureName in _subTexturePivots)
+				{
+					delete _subTexturePivots[subTextureName];
 				}
 			}
 		}

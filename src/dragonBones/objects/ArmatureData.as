@@ -33,7 +33,12 @@ package dragonBones.objects
 		
 		public function dispose():void
 		{
-			var i:int = _skinDataList.length;
+			var i:int = _boneDataList.length;
+			while(i --)
+			{
+				_boneDataList[i].dispose();
+			}
+			i = _skinDataList.length;
 			while(i --)
 			{
 				_skinDataList[i].dispose();
@@ -49,9 +54,9 @@ package dragonBones.objects
 			_skinDataList.length = 0;
 			_animationDataList.fixed = false;
 			_animationDataList.length = 0;
-			//_boneDataList = null;
-			//_skinDataList = null;
-			//_animationDataList = null;
+			_boneDataList = null;
+			_skinDataList = null;
+			_animationDataList = null;
 		}
 		
 		public function getBoneData(boneName:String):BoneData

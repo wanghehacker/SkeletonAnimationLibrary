@@ -24,7 +24,6 @@ package dragonBones.factorys
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.textures.ITextureAtlas;
 	import dragonBones.textures.NativeTextureAtlas;
-	import dragonBones.textures.SubTextureData;
 	import dragonBones.utils.BytesType;
 	
 	import flash.display.Bitmap;
@@ -36,8 +35,9 @@ package dragonBones.factorys
 	import flash.events.EventDispatcher;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import flash.system.LoaderContext;
+	import flash.geom.Rectangle;
 	import flash.system.ApplicationDomain;
+	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
 	
 	use namespace dragonBones_internal;
@@ -241,8 +241,6 @@ package dragonBones.factorys
 			delete _textureAtlasDic[name];
 		}
 		
-
-		
 		 /**
 		  * Cleans up resources used by this BaseFactory instance.
 		 * @example 
@@ -425,20 +423,19 @@ package dragonBones.factorys
 			}
 			if(textureAtlas)
 			{
-				
-				/*if(isNaN(pivotX) || isNaN(pivotY))
+				if(isNaN(pivotX) || isNaN(pivotY))
 				{
 					var skeletonData:SkeletonData = _skeletonDataDic[textureAtlasName];
 					if(skeletonData)
 					{
-						var displayData:DisplayData = skeletonData.getDisplayData(textureName);
-						if(displayData)
+						var pivot:Point = skeletonData.getSubTexturePivot(textureName);
+						if(pivot)
 						{
-							pivotX = pivotX || displayData.pivotX;
-							pivotY = pivotY || displayData.pivotY;
+							pivotX = pivotX || pivot.x;
+							pivotY = pivotY || pivot.y;
 						}
 					}
-				}*/
+				}
 				
 				return generateTextureDisplay(textureAtlas, textureName, pivotX, pivotY);
 			}
@@ -536,13 +533,10 @@ package dragonBones.factorys
 				}
 				else if(nativeTextureAtlas.bitmapData)
 				{
-					var subTextureData:SubTextureData = nativeTextureAtlas.getRegion(fullName) as SubTextureData;
+					var subTextureData:Rectangle = nativeTextureAtlas.getRegion(fullName);
 					if (subTextureData)
 					{
 						var displayShape:Shape = new Shape();
-						//1.4
-						pivotX = pivotX || subTextureData.pivotX;
-						pivotY = pivotY || subTextureData.pivotY;
 						
 						_helpMatirx.a = 1;
 						_helpMatirx.b = 0;

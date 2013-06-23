@@ -13,7 +13,6 @@
 	import dragonBones.display.StarlingDisplayBridge;
 	import dragonBones.textures.ITextureAtlas;
 	import dragonBones.textures.StarlingTextureAtlas;
-	import dragonBones.textures.SubTextureData;
 	import dragonBones.utils.ConstValues;
 	
 	import flash.display.BitmapData;
@@ -99,19 +98,6 @@
 		 */
 		override protected function generateTextureDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
 		{
-			
-			//1.4
-			var starlingTextureAtlas:StarlingTextureAtlas = textureAtlas as StarlingTextureAtlas;
-			if (starlingTextureAtlas)
-			{
-				var subTextureData:SubTextureData = starlingTextureAtlas.getRegion(fullName) as SubTextureData;
-				if (subTextureData)
-				{
-					pivotX = pivotX || subTextureData.pivotX;
-					pivotY = pivotY || subTextureData.pivotY;
-				}
-			}
-			
 			var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
 			if (subTexture)
 			{

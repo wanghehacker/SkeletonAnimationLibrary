@@ -46,9 +46,14 @@ package dragonBones.objects
 		
 		public function dispose():void
 		{
+			var i:int = _frameList.length;
+			while(i --)
+			{
+				_frameList[i].dispose();
+			}
 			_frameList.fixed = false;
 			_frameList.length = 0;
-			//_frameList = null;
+			_frameList = null;
 		}
 		
 		public function addFrame(frame:Frame):void

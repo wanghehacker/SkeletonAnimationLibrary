@@ -15,7 +15,6 @@
 	import dragonBones.utils.TransformUtils;
 	
 	import flash.geom.ColorTransform;
-	import flash.geom.Point;
 	import flash.utils.ByteArray;
 
 	use namespace dragonBones_internal;
@@ -26,16 +25,16 @@
 	{
 		private static const ANGLE_TO_RADIAN:Number = Math.PI / 180;
 		
-		private static var _currentSkeletonData:SkeletonData;
+		private static var _frameRate:uint;
 		private static var _helpTransform1:DBTransform = new DBTransform();
 		private static var _helpTransform2:DBTransform = new DBTransform();
+		private static var _currentSkeletonData:SkeletonData;
 		
 		private static function checkVersion(skeletonXML:XML):void
 		{
 			var version:String = skeletonXML.@[ConstValues.A_VERSION];
 			switch (version)
 			{
-				case "1.4":
 				case "1.5":
 				case "2.0":
 				case "2.1":
@@ -136,12 +135,13 @@
 		public static function parseSkeletonData(skeletonXML:XML):SkeletonData
 		{
 			checkVersion(skeletonXML);
+			_frameRate = int(skeletonXML.@[ConstValues.A_FRAME_RATE]);
 			
 			var skeletonData:SkeletonData = new SkeletonData();
 			skeletonData.name = skeletonXML.@[ConstValues.A_NAME];
-			skeletonData.frameRate = int(skeletonXML.@[ConstValues.A_FRAME_RATE]);
 			
 			_currentSkeletonData = skeletonData;
+			
 			var armatureXMLList:XMLList = skeletonXML[ConstValues.ARMATURES][ConstValues.ARMATURE];
 			var i:int = armatureXMLList.length();
 			while(i --)
@@ -244,8 +244,14 @@
 					displayData.transform.scaleY = 1;
 					displayData.transform.skewX = 0;
 					displayData.transform.skewY = 0;
-					displayData.pivot.x = Number(displayXML.@[ConstValues.A_PIVOT_X]);
-					displayData.pivot.y = Number(displayXML.@[ConstValues.A_PIVOT_Y]);
+					
+					_currentSkeletonData.addSubTexturePivot(
+						Number(displayXML.@[ConstValues.A_PIVOT_X]), 
+						Number(displayXML.@[ConstValues.A_PIVOT_Y]), 
+						displayData.name
+					);
+					
+					displayData.pivot = _currentSkeletonData.getSubTexturePivot(displayData.name);
 				}
 			}
 			
@@ -256,10 +262,11 @@
 		{
 			var animationData:AnimationData = new AnimationData();
 			animationData.name = animationXML.@[ConstValues.A_NAME];
+			animationData.frameRate = _frameRate;
 			animationData.loop = int(animationXML.@[ConstValues.A_LOOP]) == 1?0:1;
-			animationData.fadeTime = Number(animationXML.@[ConstValues.A_DURATION_TO]) / _currentSkeletonData.frameRate;
-			animationData.duration = Number(animationXML.@[ConstValues.A_DURATION])/ _currentSkeletonData.frameRate;
-			animationData.scale = animationData.duration / (Number(animationXML.@[ConstValues.A_DURATION_TWEEN]) / _currentSkeletonData.frameRate);
+			animationData.fadeTime = Number(animationXML.@[ConstValues.A_DURATION_TO]) / _frameRate;
+			animationData.duration = Number(animationXML.@[ConstValues.A_DURATION])/ _frameRate;
+			animationData.scale = animationData.duration / (Number(animationXML.@[ConstValues.A_DURATION_TWEEN]) / _frameRate);
 			animationData.tweenEasing = Number(animationXML.@[ConstValues.A_TWEEN_EASING][0]);
 			
 			parseTimeline(animationXML, animationData, parseMainFrame);
@@ -302,7 +309,7 @@
 		
 		private static function parseFrame(frameXML:XML, frame:Frame):void
 		{
-			frame.duration = Number(frameXML.@[ConstValues.A_DURATION]) / _currentSkeletonData.frameRate;
+			frame.duration = Number(frameXML.@[ConstValues.A_DURATION]) / _frameRate;
 			frame.action = frameXML.@[ConstValues.A_MOVEMENT];
 			frame.event = frameXML.@[ConstValues.A_EVENT];
 			frame.sound = frameXML.@[ConstValues.A_SOUND];
@@ -363,7 +370,6 @@
 				frame.color.greenMultiplier = Number(colorTransformXML.@[ConstValues.A_GREEN_MULTIPLIER]) * 0.01;
 				frame.color.blueMultiplier = Number(colorTransformXML.@[ConstValues.A_BLUE_MULTIPLIER]) * 0.01;
 			}
-			//
 			
 			return frame;
 		}

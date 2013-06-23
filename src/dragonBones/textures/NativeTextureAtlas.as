@@ -6,11 +6,11 @@ package dragonBones.textures
 	* @langversion 3.0
 	* @version 2.0
 	*/
-	import dragonBones.textures.SubTextureData;
-	import dragonBones.utils.ConstValues;
 	import dragonBones.core.dragonBones_internal;
-	import flash.display.MovieClip;
+	import dragonBones.utils.ConstValues;
+	
 	import flash.display.BitmapData;
+	import flash.display.MovieClip;
 	import flash.geom.Rectangle;
 	
 	use namespace dragonBones_internal;
@@ -129,14 +129,11 @@ package dragonBones.textures
 			for each (var subTextureXML:XML in textureAtlasXML.elements(ConstValues.SUB_TEXTURE))
 			{
 				var subTextureName:String = subTextureXML.attribute(ConstValues.A_NAME);
-				var subTextureData:SubTextureData = new SubTextureData();
+				var subTextureData:Rectangle = new Rectangle();
 				subTextureData.x = int(subTextureXML.attribute(ConstValues.A_X)) / scale;
 				subTextureData.y = int(subTextureXML.attribute(ConstValues.A_Y)) / scale;
 				subTextureData.width = int(subTextureXML.attribute(ConstValues.A_WIDTH)) / scale;
 				subTextureData.height = int(subTextureXML.attribute(ConstValues.A_HEIGHT)) / scale;
-				//1.4
-				subTextureData.pivotX = -Number(subTextureXML.attribute(ConstValues.A_PIVOT_X));
-				subTextureData.pivotY = -Number(subTextureXML.attribute(ConstValues.A_PIVOT_Y));
 				_subTextureDataDic[subTextureName] = subTextureData;
 			}
 		}

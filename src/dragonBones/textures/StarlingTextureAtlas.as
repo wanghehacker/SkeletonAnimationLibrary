@@ -6,10 +6,12 @@
 	* @langversion 3.0
 	* @version 2.0
 	*/
-	import dragonBones.utils.ConstValues;
 	import dragonBones.core.dragonBones_internal;
+	import dragonBones.utils.ConstValues;
+	
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
+	
 	import starling.textures.SubTexture;
 	import starling.textures.Texture;
 	import starling.textures.TextureAtlas;
@@ -50,7 +52,7 @@
 		 * @param	textureAtlasXML A textureAtlas xml
 		 * @param	isDifferentXML
 		 */
-		public function StarlingTextureAtlas(texture:Texture, textureAtlasXML:XML, isDifferentXML:Boolean = false)
+		public function StarlingTextureAtlas(texture:Texture, textureAtlasXML:XML, isDifferentXML:Boolean = true)
 		{
 			if (texture)
 			{
@@ -118,11 +120,8 @@
 				var frameX:Number = parseFloat(subTexture.attribute("frameX")) / scale;
 				var frameY:Number = parseFloat(subTexture.attribute("frameY")) / scale;
 				var frameWidth:Number = parseFloat(subTexture.attribute("frameWidth")) / scale;
-				var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;				
-				//1.4
-				var region:SubTextureData = new SubTextureData(x, y, width, height);
-				region.pivotX = -Number(subTexture.attribute(ConstValues.A_PIVOT_X));
-				region.pivotY = -Number(subTexture.attribute(ConstValues.A_PIVOT_Y));				
+				var frameHeight:Number = parseFloat(subTexture.attribute("frameHeight")) / scale;
+				var region:Rectangle = new Rectangle(x, y, width, height);				
 				var frame:Rectangle = frameWidth > 0 && frameHeight > 0 ? new Rectangle(frameX, frameY, frameWidth, frameHeight) : null;				
 				addRegion(name, region, frame);
 			}

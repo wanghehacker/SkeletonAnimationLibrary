@@ -1,5 +1,6 @@
 package dragonBones.utils
 {
+	import dragonBones.animation.TimelineState;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
@@ -103,15 +104,12 @@ package dragonBones.utils
 					
 					frame.transform.x -= originTransform.x;
 					frame.transform.y -= originTransform.y;
-					frame.transform.skewX -= originTransform.skewX;
-					frame.transform.skewY -= originTransform.skewY;
+					frame.transform.skewX = TransformUtils.formatRadian(frame.transform.skewX - originTransform.skewX);
+					frame.transform.skewY = TransformUtils.formatRadian(frame.transform.skewY - originTransform.skewY);
 					frame.transform.scaleX -= originTransform.scaleX;
 					frame.transform.scaleY -= originTransform.scaleY;
 					frame.pivot.x -= originPivot.x;
 					frame.pivot.y -= originPivot.y;
-					
-					frame.transform.skewX = TransformUtils.formatRadian(frame.transform.skewX);
-					frame.transform.skewY = TransformUtils.formatRadian(frame.transform.skewY);
 					
 					frame.zOrder -= slotData.zOrder;
 				}
@@ -124,22 +122,30 @@ package dragonBones.utils
 			var i:int = frameList.length;
 			while(i --)
 			{
-				var frame:TransformFrame = frameList[i] as TransformFrame;
-				if(frame.position <= position && frame.position + frame.duration > position)
+				var currentFrame:TransformFrame = frameList[i] as TransformFrame;
+				if(currentFrame.position <= position && currentFrame.position + currentFrame.duration > position)
 				{
-					var progress:Number = (position - frame.position) / frame.duration;
-					var index:Number = frameList.indexOf(frame);
-					if(index == frameList.length - 1)
+					var tweenEasing:Number = currentFrame.tweenEasing;
+					var index:Number = frameList.indexOf(currentFrame);
+					if(index == frameList.length - 1 || isNaN(tweenEasing) || position == currentFrame.position)
 					{
-						retult.copy(frame.global);
+						retult.copy(currentFrame.global);
 					}
 					else
 					{
-						//var nextFrame:BoneFrame = timeline.frameList[index + 1] as BoneFrame;
-						//AnimationState.setOffsetTransform(boneFrame, nextFrame, retult);
-						//TransformUtils.setTweenNode(boneFrame.transformGlobal, retult, retult, progress);
-						retult.copy(frame.global);
+						var progress:Number = (position - currentFrame.position) / currentFrame.duration;
+						progress = TimelineState.getEaseValue(progress, tweenEasing);
+						
+						var nextFrame:TransformFrame = timeline.frameList[index + 1] as TransformFrame;
+						
+						retult.x = currentFrame.global.x +  (nextFrame.global.x - currentFrame.global.x) * progress;
+						retult.y = currentFrame.global.y +  (nextFrame.global.y - currentFrame.global.y) * progress;
+						retult.skewX = currentFrame.global.skewX +  (nextFrame.global.skewX - currentFrame.global.skewX) * progress;
+						retult.skewY = currentFrame.global.skewY +  (nextFrame.global.skewY - currentFrame.global.skewY) * progress;
+						retult.scaleX = currentFrame.global.scaleX +  (nextFrame.global.scaleX - currentFrame.global.scaleX) * progress;
+						retult.scaleY = currentFrame.global.scaleY +  (nextFrame.global.scaleY - currentFrame.global.scaleY) * progress;
 					}
+					break;
 				}
 			}
 		}

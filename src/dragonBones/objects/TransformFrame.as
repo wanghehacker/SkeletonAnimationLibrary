@@ -29,6 +29,13 @@
 			transform = new DBTransform();
 			pivot = new Point();
 		}
+		
+		override public function dispose():void
+		{
+			super.dispose();
+			transform = null;
+			pivot = null;
+		}
 	}
 	
 }

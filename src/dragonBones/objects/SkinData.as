@@ -24,7 +24,7 @@ package dragonBones.objects
 			}
 			_slotDataList.fixed = false;
 			_slotDataList.length = 0;
-			//_slotDataList = null;
+			_slotDataList = null;
 		}
 		
 		public function getSlotData(slotName:String):SlotData

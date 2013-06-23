@@ -14,5 +14,10 @@ package dragonBones.objects
 			position = 0;
 			duration = 0;
 		}
+		
+		public function dispose():void
+		{
+			
+		}
 	}
 }

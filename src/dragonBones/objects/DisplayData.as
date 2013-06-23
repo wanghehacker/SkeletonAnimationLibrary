@@ -15,7 +15,12 @@
 		public function DisplayData()
 		{
 			transform = new DBTransform();
-			pivot = new Point();
+		}
+		
+		public function dispose():void
+		{
+			transform = null;
+			pivot = null;
 		}
 	}
 }

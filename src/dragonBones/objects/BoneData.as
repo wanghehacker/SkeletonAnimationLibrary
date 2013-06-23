@@ -18,5 +18,12 @@ package dragonBones.objects
 			transform = new DBTransform();
 			pivot = new Point();
 		}
+		
+		public function dispose():void
+		{
+			global = null;
+			transform = null;
+			pivot = null;
+		}
 	}
 }
