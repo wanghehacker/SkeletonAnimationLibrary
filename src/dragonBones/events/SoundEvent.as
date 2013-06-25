@@ -29,10 +29,6 @@ package dragonBones.events
 		 * The armature that is the target of this event.
 		 */
 		public var armature:Armature;
-		/**
-		 * The bone that is the target of this event.
-		 */
-		public var object:DBObject;
 		
 		public var animationState:AnimationState;
 		
@@ -55,7 +51,6 @@ package dragonBones.events
 		{
 			var event:SoundEvent = new SoundEvent(type, cancelable);
 			event.armature = armature;
-			event.object = object;
 			event.animationState = animationState;
 			event.sound = sound;
 			return event;

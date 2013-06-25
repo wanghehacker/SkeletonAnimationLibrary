@@ -431,8 +431,8 @@ package dragonBones.factorys
 						var pivot:Point = skeletonData.getSubTexturePivot(textureName);
 						if(pivot)
 						{
-							pivotX = pivotX || pivot.x;
-							pivotY = pivotY || pivot.y;
+							pivotX = pivot.x;
+							pivotY = pivot.y;
 						}
 					}
 				}

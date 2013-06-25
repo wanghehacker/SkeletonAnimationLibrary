@@ -17,6 +17,40 @@ package dragonBones.animation
 		private static const HALF_PI:Number = Math.PI * 0.5;
 		private static const DOUBLE_PI:Number = Math.PI * 2;
 		
+		private static var _pool:Vector.<TimelineState> = new Vector.<TimelineState>;
+		
+		/** @private */
+		dragonBones_internal static function borrowObject():TimelineState
+		{
+			if(_pool.length == 0)
+			{
+				return new TimelineState();
+			}
+			return _pool.pop();
+		}
+		
+		/** @private */
+		dragonBones_internal static function returnObject(timeline:TimelineState):void
+		{
+			if(_pool.indexOf(timeline) < 0)
+			{
+				_pool[_pool.length] = timeline;
+			}
+			
+			timeline.clear();
+		}
+		
+		/** @private */
+		dragonBones_internal static function clear():void
+		{
+			var i:int = _pool.length;
+			while(i --)
+			{
+				_pool[i].clear();
+			}
+			_pool.length = 0;
+		}
+		
 		public static function getEaseValue(value:Number, easing:Number):Number
 		{
 			if (easing > 1)
@@ -34,37 +68,6 @@ package dragonBones.animation
 				easing *= -1;
 			}
 			return valueEase * easing + value;
-		}
-		
-		private static var _pool:Vector.<TimelineState> = new Vector.<TimelineState>;
-		
-		dragonBones_internal static function borrowObject():TimelineState
-		{
-			if(_pool.length == 0)
-			{
-				return new TimelineState();
-			}
-			return _pool.pop();
-		}
-		
-		dragonBones_internal static function returnObject(timeline:TimelineState):void
-		{
-			if(_pool.indexOf(timeline) < 0)
-			{
-				_pool[_pool.length] = timeline;
-			}
-			
-			timeline.clear();
-		}
-		
-		dragonBones_internal static function clear():void
-		{
-			var i:int = _pool.length;
-			while(i --)
-			{
-				_pool[i].clear();
-			}
-			_pool.length = 0;
 		}
 		
 		public var transform:DBTransform;
@@ -154,7 +157,7 @@ package dragonBones.animation
 			switch(_timeline.frameList.length)
 			{
 				case 0:
-					_object.arriveAtFrame(null, _animationState._displayControl, _animationState);
+					_object.arriveAtFrame(null, this, _animationState, false);
 					update = updateNothing;
 					break;
 				case 1:
@@ -181,7 +184,7 @@ package dragonBones.animation
 		{
 			update = updateNothing;
 			
-			if(_animationState.blendMode)
+			if(_animationState.blend)
 			{
 				transform.copy(_originTransform);
 				pivot.copyFrom(_originPivot);
@@ -200,7 +203,7 @@ package dragonBones.animation
 			}
 			
 			_currentFrame = _timeline.frameList[0] as TransformFrame;
-			_object.arriveAtFrame(_currentFrame, _animationState._displayControl, _animationState);
+			_object.arriveAtFrame(_currentFrame, this, _animationState, false);
 		}
 		
 		private function updateList(progress:Number):void
@@ -216,7 +219,7 @@ package dragonBones.animation
 			{
 				if(isArrivedFrame)
 				{
-					_object.arriveAtFrame(_currentFrame, false, _animationState);
+					_object.arriveAtFrame(_currentFrame, this, _animationState, true);
 				}
 				var isArrivedFrame:Boolean = true;
 				if(_currentFrame)
@@ -372,7 +375,7 @@ package dragonBones.animation
 				
 				if(!_tweenTransform)
 				{
-					if(_animationState.blendMode)
+					if(_animationState.blend)
 					{
 						transform.x = _originTransform.x + _currentFrame.transform.x;
 						transform.y = _originTransform.y + _currentFrame.transform.y;
@@ -401,7 +404,7 @@ package dragonBones.animation
 				{
 					_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1);
 				}
-				_object.arriveAtFrame(_currentFrame, _animationState._displayControl, _animationState);
+				_object.arriveAtFrame(_currentFrame, this, _animationState, false);
 			}
 			
 			if (_tweenTransform)
@@ -413,7 +416,7 @@ package dragonBones.animation
 				}
 				var currentTransform:DBTransform = _currentFrame.transform;
 				var currentPivot:Point = _currentFrame.pivot;
-				if(_animationState.blendMode)
+				if(_animationState.blend)
 				{
 					transform.x = _originTransform.x + currentTransform.x + _durationTransform.x * progress;
 					transform.y = _originTransform.y + currentTransform.y + _durationTransform.y * progress;

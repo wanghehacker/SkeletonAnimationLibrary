@@ -3,8 +3,8 @@ package dragonBones.core
 	import dragonBones.Armature;
 	import dragonBones.Bone;
 	import dragonBones.animation.AnimationState;
+	import dragonBones.animation.TimelineState;
 	import dragonBones.core.dragonBones_internal;
-	import dragonBones.events.SoundEventManager;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.Frame;
 	
@@ -15,7 +15,6 @@ package dragonBones.core
 	
 	public class DBObject extends EventDispatcher
 	{	
-		protected static var _soundManager:SoundEventManager = SoundEventManager.getInstance();
 		
 		public var name:String;
 		public var userData:Object;
@@ -198,7 +197,7 @@ package dragonBones.core
 		}
 			
 		/** @private */
-		dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
 		{
 		}
 	}

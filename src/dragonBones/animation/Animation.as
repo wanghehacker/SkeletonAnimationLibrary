@@ -68,6 +68,10 @@
 	{
 		//public static var defaultTweenEnabled:Boolean = true;
 		
+		public static const FADE_OUT_NONE:String = "fadeOutNone";
+		public static const FADE_OUT_SAME_LAYER:String = "fadeOutSameLayer";
+		public static const FADE_OUT_ALL_LAYER:String = "fadeOutAllLayer";
+		
 		private var _armature:Armature;
 		private var _isPlaying:Boolean;
 		private var _animationLayer:Vector.<Vector.<AnimationState>>;
@@ -175,15 +179,14 @@
 			timeScale:Number = -1, 
 			loop:Number = NaN, 
 			layer:uint = 0, 
-			playMode:int = 1,
-			blendMode:int = 1,
+			playMode:String = FADE_OUT_SAME_LAYER,
 			pauseFadeOut:Boolean = true,
 			pauseFadeIn:Boolean = true
-		):void
+		):AnimationState
 		{
 			if (!_animationDataList)
 			{
-				return;
+				return null;
 			}
 			var i:int = _animationDataList.length;
 			while(i --)
@@ -196,36 +199,36 @@
 			}
 			if (!animationData)
 			{
-				return;
+				return null;
 			}
 			
 			_isPlaying = true;
 			
 			//
 			fadeInTime = fadeInTime < 0?(animationData.fadeTime < 0?0.3:animationData.fadeTime):fadeInTime;
-			//
-			timeScale = timeScale < 0?(animationData.scale < 0?1:animationData.scale):timeScale;
-			//
+			timeScale = (timeScale < 0?1:timeScale) * (animationData.scale < 0?1:animationData.scale);
 			loop = isNaN(loop)?animationData.loop:loop;
-			//
 			layer = addLayer(layer);
+			
+			//autoSync = autoSync && !pauseFadeOut && !pauseFadeIn;
 			
 			switch(playMode)
 			{
-				case 0:
-					//playMode == 0 blend all layer
+				case FADE_OUT_NONE:
 					break;
-				case 1:
-					//fadeOut same layer
+				case FADE_OUT_SAME_LAYER:
 					var animationStateList:Vector.<AnimationState> = _animationLayer[layer];
 					i = animationStateList.length;
 					while(i --)
 					{
-						animationStateList[i].fadeOut(fadeInTime, pauseFadeOut);
+						var animationState:AnimationState = animationStateList[i];
+						if(!animationState.group)
+						{
+							animationState.fadeOut(fadeInTime, pauseFadeOut);
+						}
 					}
 					break;
-				case 2:
-					//fadeOut all layer
+				case FADE_OUT_ALL_LAYER:
 					var j:int = _animationLayer.length;
 					while(j --)
 					{
@@ -233,11 +236,34 @@
 						i = animationStateList.length;
 						while(i --)
 						{
-							animationStateList[i].fadeOut(fadeInTime, pauseFadeOut);
+							animationState = animationStateList[i];
+							if(!animationState.group)
+							{
+								animationState.fadeOut(fadeInTime, pauseFadeOut);
+							}
+						}
+					}
+					break;
+				default:
+					var group:String = playMode;
+					j = _animationLayer.length;
+					while(j --)
+					{
+						animationStateList = _animationLayer[j];
+						i = animationStateList.length;
+						while(i --)
+						{
+							animationState = animationStateList[i];
+							if(animationState.group == group)
+							{
+								animationState.fadeOut(fadeInTime, pauseFadeOut);
+							}
 						}
 					}
 					break;
 			}
+			
+			
 			var boneList:Vector.<Bone> = _armature._boneList;
 			i = boneList.length;
 			while(i --)
@@ -250,9 +276,11 @@
 			}
 			
 			_lastAnimationState = AnimationState.borrowObject();
-			_lastAnimationState.blendMode = blendMode;
+			_lastAnimationState.group = group;
+			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, timeScale, loop, layer, pauseFadeIn);
 			addState(_lastAnimationState);
-			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, loop, layer, timeScale, pauseFadeIn);
+			setStatesDisplayControl(_lastAnimationState);
+			return _lastAnimationState;
 		}
 		
 		/**
@@ -321,7 +349,6 @@
 			
 			var l:int = _armature._boneList.length;
 			var k:int = l;
-			var lastState:Boolean;
 			l --;
 			while(k --)
 			{
@@ -349,53 +376,30 @@
 						var animationState:AnimationState = animationStateList[j];
 						if(k == l)
 						{
-							if(!lastState)
-							{
-								lastState = true;
-								animationState._displayControl = true;
-							}
-							else
-							{
-								animationState._displayControl = false;
-							}
 							if(animationState.advanceTime(passedTime))
 							{
-								AnimationState.returnObject(animationStateList[j]);
-								animationStateList.splice(j, 1);
-								if(animationStateList.length == 0 && i == _animationLayer.length - 1)
-								{
-									_animationLayer.length --;
-								}
+								removeState(animationState);
 								continue;
 							}
 						}
 						
-						if(
-							animationState._mixingList.length > 0
-							?
-							animationState._mixingList.indexOf(boneName) >= 0
-							:
-							true
-						)
+						var timelineState:TimelineState = animationState._timelineStates[boneName];
+						
+						if(timelineState)
 						{
-							var timelineState:TimelineState = animationState._timelineStates[boneName];
+							var weight:Number = animationState.fadeWeight * animationState.weight * weigthLeft;
+							var transform:DBTransform = timelineState.transform;
+							var pivot:Point = timelineState.pivot;
+							x += transform.x * weight;
+							y += transform.y * weight;
+							skewX += transform.skewX * weight;
+							skewY += transform.skewY * weight;
+							scaleX += transform.scaleX * weight;
+							scaleY += transform.scaleY * weight;
+							pivotX += pivot.x * weight;
+							pivotY += pivot.y * weight;
 							
-							if(timelineState)
-							{
-								var weight:Number = animationState.weight * weigthLeft;
-								var transform:DBTransform = timelineState.transform;
-								var pivot:Point = timelineState.pivot;
-								x += transform.x * weight;
-								y += transform.y * weight;
-								skewX += transform.skewX * weight;
-								skewY += transform.skewY * weight;
-								scaleX += transform.scaleX * weight;
-								scaleY += transform.scaleY * weight;
-								pivotX += pivot.x * weight;
-								pivotY += pivot.y * weight;
-								
-								layerTotalWeight += weight;
-							}
+							layerTotalWeight += weight;
 						}
 					}
 					
@@ -409,7 +413,7 @@
 					}
 				}
 				transform = bone._tween;
-				pivot = bone._pivot;
+				pivot = bone._tweenPivot;
 				
 				transform.x = x;
 				transform.y = y;
@@ -419,6 +423,21 @@
 				transform.scaleY = scaleY;
 				pivot.x = pivotX;
 				pivot.y = pivotY;
+			}
+		}
+		
+		/** @private */
+		dragonBones_internal function setStatesDisplayControl(animationState:AnimationState):void
+		{
+			var i:int = _animationLayer.length;
+			while(i --)
+			{
+				var animationStateList:Vector.<AnimationState> = _animationLayer[i];
+				var j:int = animationStateList.length;
+				while(j --)
+				{
+					animationStateList[j].displayControl = animationStateList[j] == animationState;
+				}
 			}
 		}
 		
@@ -432,16 +451,24 @@
 			return layer;
 		}
 		
-		private function removeState(animationState:AnimationState):void
-		{
-			var animationStateList:Vector.<AnimationState> = _animationLayer[animationState.layer];
-			animationStateList.splice(animationStateList.indexOf(animationState), 1);
-		}
-		
 		private function addState(animationState:AnimationState):void
 		{
 			var animationStateList:Vector.<AnimationState> = _animationLayer[animationState.layer];
 			animationStateList[animationStateList.length] = animationState;
+		}
+		
+		private function removeState(animationState:AnimationState):void
+		{
+			var layer:int = animationState.layer;
+			var animationStateList:Vector.<AnimationState> = _animationLayer[layer];
+			animationStateList.splice(animationStateList.indexOf(animationState), 1);
+			
+			AnimationState.returnObject(animationState);
+			
+			if(animationStateList.length == 0 && layer == _animationLayer.length - 1)
+			{
+				_animationLayer.length --;
+			}
 		}
 	}
 	

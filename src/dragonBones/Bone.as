@@ -1,6 +1,7 @@
 ﻿package dragonBones
 {
 	import dragonBones.animation.AnimationState;
+	import dragonBones.animation.TimelineState;
 	import dragonBones.core.DBObject;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.events.FrameEvent;
@@ -17,25 +18,30 @@
 		//0/1/2
 		public var scaleMode:int;
 		
-		dragonBones_internal var _pivot:Point;
+		dragonBones_internal var _tweenPivot:Point;
 		
 		private var _children:Vector.<DBObject>;
-		private var _defaultSlot:Slot;
+		
+		private var _slot:Slot;
+		public function get slot():Slot
+		{
+			return _slot;
+		}
 		
 		public function get childArmature():Armature
 		{
-			return _defaultSlot?_defaultSlot.childArmature:null; 
+			return _slot?_slot.childArmature:null; 
 		}
 		
 		public function get display():Object
 		{
-			return _defaultSlot?_defaultSlot.display:null;
+			return _slot?_slot.display:null;
 		}
 		public function set display(value:Object):void
 		{
-			if(_defaultSlot)
+			if(_slot)
 			{
-				_defaultSlot.display = value;
+				_slot.display = value;
 			}
 		}
 		
@@ -55,7 +61,7 @@
 			_children = new Vector.<DBObject>(0, true);
 			_scaleType = 2;
 			
-			_pivot = new Point();
+			_tweenPivot = new Point();
 			
 			scaleMode = 1;
 		}
@@ -73,16 +79,16 @@
 			_children.length = 0;
 			
 			_children = null;
-			_defaultSlot = null;
-			_pivot = null;
+			_slot = null;
+			_tweenPivot = null;
 		}
 		
 		override dragonBones_internal function update():void
 		{
 			super.update();
 			
-			var pivotX:Number = _pivot.x;
-			var pivotY:Number = _pivot.y;
+			var pivotX:Number = _tweenPivot.x;
+			var pivotY:Number = _tweenPivot.y;
 			if(pivotX || pivotY)
 			{
 				this._globalTransformMatrix.tx += this._globalTransformMatrix.a * pivotX + this._globalTransformMatrix.c * pivotY;
@@ -90,6 +96,7 @@
 			}
 		}
 		
+		/** @private */
 		override dragonBones_internal function updateColor(
 			aOffset:Number, 
 			rOffset:Number, 
@@ -101,7 +108,7 @@
 			bMultiplier:Number
 		):void
 		{
-			_defaultSlot._displayBridge.updateColor(
+			_slot._displayBridge.updateColor(
 				aOffset, 
 				rOffset, 
 				gOffset, 
@@ -114,46 +121,37 @@
 		}
 		
 		/** @private */
-		override dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		override dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
 		{
 			if(frame)
 			{
-				if(endArrive)
+				var mixingType:int = animationState.getMixingType(name);
+				if(animationState.displayControl && (mixingType == 2 || mixingType == -1))
 				{
 					var tansformFrame:TransformFrame = frame as TransformFrame;
-					if(_defaultSlot)
+					if(_slot)
 					{
 						var displayIndex:int = tansformFrame.displayIndex;
 						if(displayIndex >= 0)
 						{
-							if(tansformFrame.zOrder != _defaultSlot._tweenZorder)
+							if(tansformFrame.zOrder != _slot._tweenZorder)
 							{
-								_defaultSlot._tweenZorder = tansformFrame.zOrder;
+								_slot._tweenZorder = tansformFrame.zOrder;
 								_armature._slotsZOrderChanged = true;
 							}
 						}
-						_defaultSlot.changeDisplay(displayIndex);
-						_defaultSlot.visible = tansformFrame.visible;
+						_slot.changeDisplay(displayIndex);
+						_slot.visible = tansformFrame.visible;
 					}
 				}
 				
-				if(frame.event && _armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
+				if(frame.event && _armature.hasEventListener(FrameEvent.OBJECT_FRAME_EVENT))
 				{
-					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
+					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.OBJECT_FRAME_EVENT);
 					frameEvent.object = this;
 					frameEvent.animationState = animationState;
 					frameEvent.frameLabel = frame.event;
 					_armature.dispatchEvent(frameEvent);
-				}
-				
-				if(frame.sound && _soundManager.hasEventListener(SoundEvent.SOUND))
-				{
-					var soundEvent:SoundEvent = new SoundEvent(SoundEvent.SOUND);
-					soundEvent.armature = _armature;
-					soundEvent.object = this;
-					soundEvent.animationState = animationState;
-					soundEvent.sound = frame.sound;
-					_soundManager.dispatchEvent(soundEvent);
 				}
 				
 				if(frame.action)
@@ -167,9 +165,9 @@
 			}
 			else
 			{
-				if(_defaultSlot)
+				if(_slot)
 				{
-					_defaultSlot.changeDisplay(-1);
+					_slot.changeDisplay(-1);
 				}
 			}
 		}
@@ -180,13 +178,16 @@
 			{
 				throw new ArgumentError();
 			}
-			
-			var ancestor:DBObject = this;
-			while (ancestor != child && ancestor != null)
+			if(child == this)
+			{
+				return false;
+			}
+			var ancestor:DBObject = child;
+			while (!(ancestor == this || ancestor == null))
 			{
 				ancestor = ancestor.parent;
 			}
-			return ancestor == child;
+			return ancestor == this;
 		}
 		
 		public function addChild(child:DBObject):void
@@ -196,7 +197,8 @@
 				throw new ArgumentError();
 			}
 			
-			if((child is Bone) && (child as Bone).contains(this))
+			var bone:Bone = child as Bone;
+			if(child == this || (bone && bone.contains(this)))
 			{
 				throw new ArgumentError("An Bone cannot be added as a child to itself or one of its children (or children's children, etc.)");
 			}
@@ -209,9 +211,9 @@
 			_children.fixed = true;
 			child.setParent(this);
 			
-			if(!_defaultSlot && child is Slot)
+			if(!_slot && child is Slot)
 			{
-				_defaultSlot = child as Slot;
+				_slot = child as Slot;
 			}
 		}
 		
@@ -230,9 +232,9 @@
 				_children.fixed = true;
 				child.setParent(null);
 				
-				if(_defaultSlot && child == _defaultSlot)
+				if(_slot && child == _slot)
 				{
-					_defaultSlot = null;
+					_slot = null;
 				}
 			}
 			else

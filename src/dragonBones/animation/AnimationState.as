@@ -52,19 +52,18 @@ package dragonBones.animation
 		
 		public var enabled:Boolean;
 		public var tweenEnabled:Boolean;
+		public var blend:Boolean;
+		public var group:String;
 		public var weight:Number;
-		public var blendMode:int;
 		
 		/** @private */
 		dragonBones_internal var _timelineStates:Object;
 		/** @private */
-		dragonBones_internal var _mixingList:Vector.<String>;
-		/** @private */
-		dragonBones_internal var _displayControl:Boolean;
+		dragonBones_internal var fadeWeight:Number;
 		
 		private var _armature:Armature;
 		private var _currentFrame:Frame;
-		
+		private var _mixingTransforms:Object;
 		private var _fadeState:int;
 		private var _fadeInTime:Number;
 		private var _fadeOutTime:Number;
@@ -103,12 +102,6 @@ package dragonBones.animation
 			return _layer;
 		}
 		
-		private var _totalTime:Number;
-		public function get totalTime():Number
-		{
-			return _totalTime;
-		}
-		
 		private var _isPlaying:Boolean;
 		public function get isPlaying():Boolean
 		{
@@ -119,6 +112,17 @@ package dragonBones.animation
 		public function get isComplete():Boolean
 		{
 			return _isComplete; 
+		}
+		
+		public function get fadeInTime():Number
+		{
+			return _fadeInTime;
+		}
+		
+		private var _totalTime:Number;
+		public function get totalTime():Number
+		{
+			return _totalTime;
 		}
 		
 		private var _currentTime:Number;
@@ -153,22 +157,39 @@ package dragonBones.animation
 			_timeScale = value;
 		}
 		
+		private var _displayControl:Boolean;
+		public function get displayControl():Boolean
+		{
+			return _displayControl;
+		}
+		public function set displayControl(value:Boolean):void
+		{
+			if(_displayControl != value)
+			{
+				_displayControl = value;
+				if(_displayControl)
+				{
+					_armature.animation.setStatesDisplayControl(this);
+				}
+			}
+		}
+		
 		public function AnimationState()
 		{ 
 			_timelineStates = {};
-			_mixingList = new Vector.<String>;
 		}
 		
-		dragonBones_internal function fadeIn(armature:Armature, clip:AnimationData, fadeInTime:Number, loop:int, layer:uint, timeScale:Number, pauseBeforeFadeInComplete:Boolean):void
+		/** @private */
+		dragonBones_internal function fadeIn(armature:Armature, clip:AnimationData, fadeInTime:Number, timeScale:Number, loop:int, layer:uint, pauseBeforeFadeInComplete:Boolean):void
 		{
 			_armature = armature;
 			_clip = clip;
-			_pauseBeforeFadeInComplete = pauseBeforeFadeInComplete;
 			
 			_timeScale = timeScale;
+			_fadeInTime = fadeInTime * _timeScale;
 			_loop = loop;
 			_layer = layer;
-			_fadeInTime = fadeInTime * _timeScale;
+			_pauseBeforeFadeInComplete = pauseBeforeFadeInComplete;
 			
 			_totalTime = _clip.duration;
 			_loopCount = -1;
@@ -182,7 +203,9 @@ package dragonBones.animation
 			_fadeIn = true;
 			_fadeOut = false;
 			
-			weight = 0;
+			blend = true;
+			fadeWeight = 0;
+			weight = 1;
 			
 			if(_totalTime <= 0 && Math.abs(_loop) != 1)
 			{
@@ -196,14 +219,7 @@ package dragonBones.animation
 				}
 			}
 			
-			for(var timelineName:String in _clip.timelines)
-			{
-				var timelineState:TimelineState = TimelineState.borrowObject();
-				var bone:Bone = _armature.getBone(timelineName);
-				var timeline:TransformTimeline = _clip.getTimeline(timelineName);
-				timelineState.fadeIn(bone, this, timeline);
-				_timelineStates[timelineName] = timelineState;
-			}
+			updateTimelineStates();
 			
 			enabled = true;
 			tweenEnabled = true;
@@ -215,7 +231,7 @@ package dragonBones.animation
 			{
 				return;
 			}
-			_fadeOutWeight = weight;
+			_fadeOutWeight = fadeWeight;
 			_fadeOutTime = fadeOutTime * _timeScale;
 			_fadeState = -1;
 			_fadeOutBeginTime = _currentTime;
@@ -240,15 +256,36 @@ package dragonBones.animation
 			_isPlaying = false;
 		}
 		
-		public function addMixing(boneName:String):void
+		public function addMixingTransform(timelineName:String, type:int = 2, recursive:Boolean = true):void
 		{
-			//
-			if(_clip.getTimeline(boneName))
+			if(_clip && _clip.getTimeline(timelineName))
 			{
-				if(_mixingList.indexOf(boneName) < 0)
+				if(!_mixingTransforms)
 				{
-					_mixingList[_mixingList.length] = boneName;
+					_mixingTransforms = {};
 				}
+				if(recursive)
+				{
+					var i:int = _armature._boneList.length;
+					while(i --)
+					{
+						var bone:Bone = _armature._boneList[i];
+						if(bone.name == timelineName)
+						{
+							var currentBone:Bone = bone;
+						}
+						if(currentBone && (currentBone == bone || currentBone.contains(bone)))
+						{
+							_mixingTransforms[bone.name] = type;
+						}
+					}
+				}
+				else
+				{
+					_mixingTransforms[timelineName] = type;
+				}
+				
+				updateTimelineStates();
 			}
 			else
 			{
@@ -256,20 +293,46 @@ package dragonBones.animation
 			}
 		}
 		
-		public function removeMixing(boneName:String = null):void
+		public function removeMixingTransform(timelineName:String = null, recursive:Boolean = true):void
 		{
-			if(boneName)
+			if(timelineName)
 			{
-				var index:int = _mixingList.indexOf(boneName);
-				if(index >= 0)
+				if(recursive)
 				{
-					_mixingList.splice(index, 1);
+					var i:int = _armature._boneList.length;
+					while(i --)
+					{
+						var bone:Bone = _armature._boneList[i];
+						if(bone.name == timelineName)
+						{
+							var currentBone:Bone = bone;
+						}
+						if(currentBone && (currentBone == bone || currentBone.contains(bone)))
+						{
+							delete _mixingTransforms[bone.name];
+						}
+					}
+				}
+				else
+				{
+					delete _mixingTransforms[timelineName];
+				}
+				
+				for each(timelineName in _mixingTransforms)
+				{
+					var hasMixing:Boolean = true;
+				}
+				if(!hasMixing)
+				{
+					_mixingTransforms = null;
 				}
 			}
 			else
 			{
-				_mixingList.length = 0;
+				_mixingTransforms = null;
 			}
+			
+			updateTimelineStates();
 		}
 		
 		public function advanceTime(passedTime:Number):Boolean
@@ -374,7 +437,7 @@ package dragonBones.animation
 					{
 						if(isArrivedFrame)
 						{
-							_armature.arriveAtFrame(_currentFrame, _isPlaying, this);
+							_armature.arriveAtFrame(_currentFrame, null, this, true);
 						}
 						var isArrivedFrame:Boolean = true;
 						if(_currentFrame)
@@ -395,7 +458,7 @@ package dragonBones.animation
 					
 					if(isArrivedFrame)
 					{
-						_armature.arriveAtFrame(_currentFrame, _isPlaying, this);
+						_armature.arriveAtFrame(_currentFrame, null, this, false);
 					}
 				}
 				
@@ -410,7 +473,7 @@ package dragonBones.animation
 			{
 				if(_fadeInTime == 0)
 				{
-					weight = 1;
+					fadeWeight = 1;
 					_fadeState = 0;
 					_isPlaying = true;
 					if(_armature.hasEventListener(AnimationEvent.FADE_IN_COMPLETE))
@@ -422,10 +485,10 @@ package dragonBones.animation
 				}
 				else
 				{
-					weight = _currentTime / _fadeInTime;
-					if(weight >= 1)
+					fadeWeight = _currentTime / _fadeInTime;
+					if(fadeWeight >= 1)
 					{
-						weight = 1;
+						fadeWeight = 1;
 						_fadeState = 0;
 						if(!_isPlaying)
 						{
@@ -445,7 +508,7 @@ package dragonBones.animation
 			{
 				if(_fadeOutTime == 0)
 				{
-					weight = 0;
+					fadeWeight = 0;
 					_fadeState = 0;
 					if(_armature.hasEventListener(AnimationEvent.FADE_OUT_COMPLETE))
 					{
@@ -457,10 +520,10 @@ package dragonBones.animation
 				}
 				else
 				{
-					weight = (1 - (_currentTime - _fadeOutBeginTime) / _fadeOutTime) * _fadeOutWeight;
-					if(weight <= 0)
+					fadeWeight = (1 - (_currentTime - _fadeOutBeginTime) / _fadeOutTime) * _fadeOutWeight;
+					if(fadeWeight <= 0)
 					{
-						weight = 0;
+						fadeWeight = 0;
 						_fadeState = 0;
 						if(_armature.hasEventListener(AnimationEvent.FADE_OUT_COMPLETE))
 						{
@@ -481,19 +544,75 @@ package dragonBones.animation
 			return false;
 		}
 		
+		/** @private */
+		dragonBones_internal function getMixingType(timelineName:String):int
+		{
+			if(_mixingTransforms)
+			{
+				return int(_mixingTransforms[timelineName]);
+			}
+			return -1;
+		}
+		
+		private function updateTimelineStates():void
+		{
+			if(_mixingTransforms)
+			{
+				for(var timelineName:String in _timelineStates)
+				{
+					if(_mixingTransforms[timelineName] == null)
+					{
+						removeTimelineState(timelineName);
+					}
+				}
+				
+				for(timelineName in _mixingTransforms)
+				{
+					if(!_timelineStates[timelineName])
+					{
+						addTimelineState(timelineName);
+					}
+				}
+			}
+			else
+			{
+				for(timelineName in _clip.timelines)
+				{
+					if(!_timelineStates[timelineName])
+					{
+						addTimelineState(timelineName);
+					}
+				}
+			}
+		}
+		
+		private function addTimelineState(timelineName:String):void
+		{
+			var timelineState:TimelineState = TimelineState.borrowObject();
+			var bone:Bone = _armature.getBone(timelineName);
+			var timeline:TransformTimeline = _clip.getTimeline(timelineName);
+			timelineState.fadeIn(bone, this, timeline);
+			_timelineStates[timelineName] = timelineState;
+		}
+		
+		private function removeTimelineState(timelineName:String):void
+		{
+			TimelineState.returnObject(_timelineStates[timelineName] as TimelineState);
+			delete _timelineStates[timelineName];
+		}
+		
 		private function clear():void
 		{
 			_armature = null;
 			_currentFrame = null;
 			_clip = null;
+			_mixingTransforms = null;
+			enabled = false;
 			
-			for(var i:String in _timelineStates)
+			for(var timelineName:String in _timelineStates)
 			{
-				TimelineState.returnObject(_timelineStates[i] as TimelineState);
-				delete _timelineStates[i];
+				removeTimelineState(timelineName);
 			}
-			
-			_mixingList.length = 0;
 		}
 	}
 }

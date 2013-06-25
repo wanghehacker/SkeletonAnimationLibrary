@@ -20,25 +20,32 @@ package dragonBones.events
 	 */
 	public class FrameEvent extends Event
 	{
+		public static function get MOVEMENT_FRAME_EVENT():String
+		{
+			return  ANIMATION_FRAME_EVENT;
+		}
+		
+		public static function get BONE_FRAME_EVENT():String
+		{
+			return  OBJECT_FRAME_EVENT;
+		}
+		
 		/**
 		 * Dispatched when the animation of the armatrue enter a frame.
 		 */
 		public static const ANIMATION_FRAME_EVENT:String = "animationFrameEvent";
 		
 		/**
-		 * Dispatched when a bone of the armature enter a frame.
+		 * 
 		 */
-		public static const BONE_FRAME_EVENT:String = "boneFrameEvent";
-		
-		public static function get MOVEMENT_FRAME_EVENT():String
-		{
-			return  ANIMATION_FRAME_EVENT;
-		}
+		public static const OBJECT_FRAME_EVENT:String ="objectFrameEvent";
 		
 		/**
 		 * The entered frame label.
 		 */
 		public var frameLabel:String;
+		
+		public var object:DBObject;
 		
 		/**
 		 * The armature that is the target of this event.
@@ -52,11 +59,6 @@ package dragonBones.events
 		 * The animationState instance.
 		 */
 		public var animationState:AnimationState;
-		
-		/**
-		 * The bone that is the target of this event.
-		 */
-		public var object:DBObject;
 		
 		/**
 		 * Creates a new FrameEvent instance.

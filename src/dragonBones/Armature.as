@@ -3,11 +3,13 @@
 	import dragonBones.animation.Animation;
 	import dragonBones.animation.AnimationState;
 	import dragonBones.animation.IAnimatable;
+	import dragonBones.animation.TimelineState;
 	import dragonBones.core.DBObject;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.events.ArmatureEvent;
 	import dragonBones.events.FrameEvent;
 	import dragonBones.events.SoundEvent;
+	import dragonBones.events.SoundEventManager;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.Frame;
 	
@@ -15,29 +17,44 @@
 	
 	use namespace dragonBones_internal;
 	/**
-	 * Dispatched when the movement of animation is changed.
+	 * Dispatched when an animation state of the animation begins fade in.
 	 */
-	[Event(name="movementChange", type="dragonBones.events.AnimationEvent")]
+	[Event(name="fadeIn", type="dragonBones.events.AnimationEvent")]
 	
 	/**
-	 * Dispatched when the playback of a animation starts.
+	 * Dispatched when an animation state of the animation begins fade out.
+	 */
+	[Event(name="fadeOut", type="dragonBones.events.AnimationEvent")]
+	
+	/**
+	 * Dispatched when an animation state of the animation starts.
 	 */
 	[Event(name="start", type="dragonBones.events.AnimationEvent")]
 	
 	/**
-	 * Dispatched when the playback of a animation stops.
+	 * Dispatched when an animation state of the animation completes.
 	 */
 	[Event(name="complete", type="dragonBones.events.AnimationEvent")]
 	
 	/**
-	 * Dispatched when the playback of a animation completes a loop.
+	 * Dispatched when an animation state of the animation completes a loop.
 	 */
 	[Event(name="loopComplete", type="dragonBones.events.AnimationEvent")]
 	
 	/**
-	 * Dispatched when the animation of the armature enter a frame.
+	 * Dispatched when an animation state of the animation completes fade in.
 	 */
-	[Event(name="movementFrameEvent", type="dragonBones.events.FrameEvent")]
+	[Event(name="fadeInComplete", type="dragonBones.events.AnimationEvent")]
+	
+	/**
+	 * Dispatched when an animation state of the animation completes fade out.
+	 */
+	[Event(name="fadeOutComplete", type="dragonBones.events.AnimationEvent")]
+	
+	/**
+	 * Dispatched when an animation state of the animation enters a frame.
+	 */
+	[Event(name="animationFrameEvent", type="dragonBones.events.FrameEvent")]
 	
 	/**
 	 * Dispatched when a bone of the armature enters a frame.
@@ -46,6 +63,7 @@
 
 	public class Armature extends Bone implements IAnimatable
 	{
+		private static var _soundManager:SoundEventManager = SoundEventManager.getInstance();
 		private static var _helpArray:Array = [];
 		
 		/** @private */
@@ -113,8 +131,9 @@
 			
 			//_display = null;
 		}
+		
 		/** @private */
-		override dragonBones_internal function arriveAtFrame(frame:Frame, endArrive:Boolean, animationState:AnimationState):void
+		override dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
 		{
 			if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
 			{
@@ -132,7 +151,8 @@
 				soundEvent.sound = frame.sound;
 				_soundManager.dispatchEvent(soundEvent);
 			}
-			if(frame.action && endArrive)
+			
+			if(frame.action && animationState.isPlaying)
 			{
 				animation.gotoAndPlay(frame.action);
 			}
@@ -171,18 +191,16 @@
 			{
 				sortSlotsZOrder();
 			}
-			
-			update();
 		}
 		
-		public function getSlots():Vector.<Slot>
+		public function getSlots(returnCopy:Boolean = true):Vector.<Slot>
 		{
-			return _slotList;
+			return returnCopy?_slotList.concat():_slotList;
 		}
 		
-		public function getBones():Vector.<Bone>
+		public function getBones(returnCopy:Boolean = true):Vector.<Bone>
 		{
-			return _boneList;
+			return returnCopy?_boneList.concat():_boneList;
 		}
 		
 		public function getSlot(slotName:String):Slot
