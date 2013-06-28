@@ -4,8 +4,6 @@
 	/** @private */
 	final public class ConstValues
 	{
-		public static const VERSION:String = "2.2";
-		
 		public static const SKELETON:String = "skeleton";
 		public static const ARMATURES:String = "armatures";
 		public static const ARMATURE:String = "armature";
@@ -60,11 +58,6 @@
 		public static const A_RED_MULTIPLIER:String = "rM";
 		public static const A_GREEN_MULTIPLIER:String = "gM";
 		public static const A_BLUE_MULTIPLIER:String = "bM";
-		
-		public static const POSITION_TIMELINE:uint = 0;
-		public static const ROTATION_TIMELINE:uint = 1;
-		public static const SCALE_TIMELINE:uint = 2;
-		public static const PIVOT_TIMELINE:uint = 3;
 	}
 
 }

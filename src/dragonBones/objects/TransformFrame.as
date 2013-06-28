@@ -26,6 +26,7 @@
 			displayIndex = 0;
 			zOrder = 0;
 			
+			global = new DBTransform();
 			transform = new DBTransform();
 			pivot = new Point();
 		}

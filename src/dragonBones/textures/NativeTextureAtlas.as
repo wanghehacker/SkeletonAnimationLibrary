@@ -122,18 +122,18 @@ package dragonBones.textures
 		
 		protected function parseData(textureAtlasXML:XML):void
 		{
-			_name = textureAtlasXML.attribute(ConstValues.A_NAME);
-			_width = int(textureAtlasXML.attribute(ConstValues.A_WIDTH));
-			_height = int(textureAtlasXML.attribute(ConstValues.A_HEIGHT));
+			_name = textureAtlasXML.@[ConstValues.A_NAME];
+			_width = int(textureAtlasXML.@[ConstValues.A_WIDTH]);
+			_height = int(textureAtlasXML.@[ConstValues.A_HEIGHT]);
 			var scale:Number = _isDifferentXML ? _scale : 1;
-			for each (var subTextureXML:XML in textureAtlasXML.elements(ConstValues.SUB_TEXTURE))
+			for each (var subTextureXML:XML in textureAtlasXML[ConstValues.SUB_TEXTURE])
 			{
-				var subTextureName:String = subTextureXML.attribute(ConstValues.A_NAME);
+				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
 				var subTextureData:Rectangle = new Rectangle();
-				subTextureData.x = int(subTextureXML.attribute(ConstValues.A_X)) / scale;
-				subTextureData.y = int(subTextureXML.attribute(ConstValues.A_Y)) / scale;
-				subTextureData.width = int(subTextureXML.attribute(ConstValues.A_WIDTH)) / scale;
-				subTextureData.height = int(subTextureXML.attribute(ConstValues.A_HEIGHT)) / scale;
+				subTextureData.x = int(subTextureXML.@[ConstValues.A_X]) / scale;
+				subTextureData.y = int(subTextureXML.@[ConstValues.A_Y]) / scale;
+				subTextureData.width = int(subTextureXML.@[ConstValues.A_WIDTH]) / scale;
+				subTextureData.height = int(subTextureXML.@[ConstValues.A_HEIGHT]) / scale;
 				_subTextureDataDic[subTextureName] = subTextureData;
 			}
 		}

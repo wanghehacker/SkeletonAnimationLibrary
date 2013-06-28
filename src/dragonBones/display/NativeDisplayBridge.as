@@ -63,7 +63,10 @@ package dragonBones.display
 		}
 		public function set visible(value:Boolean):void
 		{
-			_display.visible = value;
+			if(_display)
+			{
+				_display.visible = value;
+			}
 		}
 		
 		/**

@@ -120,8 +120,8 @@
 			}
 			else if (content is MovieClip)
 			{
-				var width:int = int(textureAtlasXML.attribute(ConstValues.A_WIDTH)) * scaleForTexture;
-				var height:int = int(textureAtlasXML.attribute(ConstValues.A_HEIGHT)) * scaleForTexture;				
+				var width:int = int(textureAtlasXML.@[ConstValues.A_WIDTH]) * scaleForTexture;
+				var height:int = int(textureAtlasXML.@[ConstValues.A_HEIGHT]) * scaleForTexture;				
 				_helpMatirx.a = 1;
 				_helpMatirx.b = 0;
 				_helpMatirx.c = 0;

@@ -5,7 +5,6 @@
 	import dragonBones.core.DBObject;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.events.FrameEvent;
-	import dragonBones.events.SoundEvent;
 	import dragonBones.objects.Frame;
 	import dragonBones.objects.TransformFrame;
 	
@@ -125,7 +124,7 @@
 		{
 			if(frame)
 			{
-				var mixingType:int = animationState.getMixingType(name);
+				var mixingType:int = animationState.getMixingTransform(name);
 				if(animationState.displayControl && (mixingType == 2 || mixingType == -1))
 				{
 					var tansformFrame:TransformFrame = frame as TransformFrame;

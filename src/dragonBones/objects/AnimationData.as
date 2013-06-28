@@ -45,7 +45,6 @@ package dragonBones.objects
 			for(var timelineName:String in _timelines)
 			{
 				(_timelines[timelineName] as TransformTimeline).dispose();
-				delete _timelines[timelineName];
 			}
 			_timelines = null;
 		}

@@ -86,6 +86,37 @@
 			return _lastAnimationState?_lastAnimationState.name:null;
 		}
 		
+		public function get isPlaying():Boolean
+		{
+			return _isPlaying && !isComplete;
+		}
+		
+		public function get isComplete():Boolean
+		{
+			if(_lastAnimationState)
+			{
+				if(!_lastAnimationState.isComplete)
+				{
+					return false;
+				}
+				var j:int = _animationLayer.length;
+				while(j --)
+				{
+					var animationStateList:Vector.<AnimationState> = _animationLayer[j];
+					var i:int = animationStateList.length;
+					while(i --)
+					{
+						if(!animationStateList[i].isComplete)
+						{
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+		
 		private var _timeScale:Number = 1;
 		public function get timeScale():Number
 		{
@@ -176,10 +207,11 @@
 		public function gotoAndPlay(
 			animationName:String, 
 			fadeInTime:Number = -1, 
-			timeScale:Number = -1, 
+			durationScale:Number = -1, 
 			loop:Number = NaN, 
 			layer:uint = 0, 
 			playMode:String = FADE_OUT_SAME_LAYER,
+			displayControl:Boolean = true,
 			pauseFadeOut:Boolean = true,
 			pauseFadeIn:Boolean = true
 		):AnimationState
@@ -206,12 +238,11 @@
 			
 			//
 			fadeInTime = fadeInTime < 0?(animationData.fadeTime < 0?0.3:animationData.fadeTime):fadeInTime;
-			timeScale = (timeScale < 0?1:timeScale) * (animationData.scale < 0?1:animationData.scale);
+			durationScale = (durationScale < 0?1:durationScale) * (animationData.scale < 0?1:animationData.scale);
 			loop = isNaN(loop)?animationData.loop:loop;
 			layer = addLayer(layer);
 			
 			//autoSync = autoSync && !pauseFadeOut && !pauseFadeIn;
-			
 			switch(playMode)
 			{
 				case FADE_OUT_NONE:
@@ -275,11 +306,12 @@
 				}
 			}
 			
+			
 			_lastAnimationState = AnimationState.borrowObject();
 			_lastAnimationState.group = group;
-			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, timeScale, loop, layer, pauseFadeIn);
+			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, 1 / durationScale, loop, layer, displayControl, pauseFadeIn);
+			
 			addState(_lastAnimationState);
-			setStatesDisplayControl(_lastAnimationState);
 			return _lastAnimationState;
 		}
 		
@@ -299,6 +331,10 @@
 			else if (!_isPlaying)
 			{
 				_isPlaying = true;
+			}
+			else
+			{
+				gotoAndPlay(_lastAnimationState.name);
 			}
 		}
 		
@@ -387,7 +423,7 @@
 						
 						if(timelineState)
 						{
-							var weight:Number = animationState.fadeWeight * animationState.weight * weigthLeft;
+							var weight:Number = animationState._fadeWeight * animationState.weight * weigthLeft;
 							var transform:DBTransform = timelineState.transform;
 							var pivot:Point = timelineState.pivot;
 							x += transform.x * weight;

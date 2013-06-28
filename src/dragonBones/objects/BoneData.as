@@ -15,6 +15,7 @@ package dragonBones.objects
 		public function BoneData()
 		{
 			length = 0;
+			global = new DBTransform();
 			transform = new DBTransform();
 			pivot = new Point();
 		}

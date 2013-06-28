@@ -133,6 +133,7 @@ package dragonBones.animation
 			*/
 			
 			_totalTime = _animationState.totalTime;
+			
 			_scale = _timeline.scale;
 			_offset = _timeline.offset;
 			
@@ -208,14 +209,21 @@ package dragonBones.animation
 		
 		private function updateList(progress:Number):void
 		{
-			progress /= _scale;
-			progress += _offset;
+			if(_timeline.scale == 0)
+			{
+				progress = 1;
+			}
+			else
+			{
+				progress /= _timeline.scale;
+			}
+			progress += _timeline.offset;
 			var loopCount:int = progress;
 			progress -= loopCount;
 			
 			//
 			var playedTime:Number = _totalTime * progress;
-			while (!_currentFrame || playedTime >= _currentFramePosition + _currentFrameDuration || playedTime < _currentFramePosition)
+			while (!_currentFrame || playedTime > _currentFramePosition + _currentFrameDuration || playedTime < _currentFramePosition)
 			{
 				if(isArrivedFrame)
 				{
@@ -250,7 +258,7 @@ package dragonBones.animation
 				}
 				var nextFrame:TransformFrame = _timeline.frameList[index] as TransformFrame;
 				
-				if(index == 0 && _animationState.loop && _animationState.loopCount >= Math.abs(_animationState.loop) - 1 && ((_currentFramePosition + _currentFrameDuration) / _totalTime + loopCount - _offset) * _scale > 0.99)// >= 1
+				if(index == 0 && _animationState.loop && _animationState.loopCount >= Math.abs(_animationState.loop) - 1 && ((_currentFramePosition + _currentFrameDuration) / _totalTime + loopCount - _timeline.offset) * _timeline.scale > 0.999999)// >= 1
 				{
 					update = updateNothing;
 					_tweenEasing = NaN;

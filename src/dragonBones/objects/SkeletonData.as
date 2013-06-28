@@ -39,10 +39,6 @@ package dragonBones.objects
 			_armatureDataList.fixed = false;
 			_armatureDataList.length = 0;
 			
-			for(var subTextureName:String in _subTexturePivots)
-			{
-				delete _subTexturePivots[subTextureName];
-			}
 			_armatureDataList = null;
 			_subTexturePivots = null;
 		}

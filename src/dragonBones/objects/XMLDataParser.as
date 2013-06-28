@@ -8,6 +8,7 @@
 	*/
 	import dragonBones.animation.Animation;
 	import dragonBones.animation.AnimationState;
+	import dragonBones.core.DragonBones;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
@@ -40,7 +41,9 @@
 				case "2.1":
 				case "2.1.1":
 				case "2.1.2":
-				case ConstValues.VERSION:
+				case "2.2":
+					break;
+				case DragonBones.DATA_VERSION:
 					break;
 				default: 
 					throw new Error("Nonsupport version!");
@@ -143,15 +146,15 @@
 			_currentSkeletonData = skeletonData;
 			
 			var armatureXMLList:XMLList = skeletonXML[ConstValues.ARMATURES][ConstValues.ARMATURE];
-			var i:int = armatureXMLList.length();
-			while(i --)
+			var length:int = armatureXMLList.length();
+			for(var i:int = 0;i< length; i ++)
 			{
 				skeletonData.addArmatureData(parseArmatureData(armatureXMLList[i]));
 			}
 			
 			var animationsXMLList:XMLList = skeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION];
-			i = animationsXMLList.length();
-			while(i --)
+			length = animationsXMLList.length();
+			for(i = 0;i< length; i ++)
 			{
 				var animationsXML:XML = animationsXMLList[i];
 				var armatureData:ArmatureData = skeletonData.getArmatureData(animationsXML.@[ConstValues.A_NAME]);
@@ -161,6 +164,8 @@
 					{
 						armatureData.addAnimationData(parseAnimationData(animationXML, armatureData));
 					}
+					
+					DBDataUtils.transformAnimationData(armatureData);
 				}
 			}
 			
@@ -183,10 +188,8 @@
 			
 			armatureData.addSkinData(parseSkinData(armatureXML));
 			
-			armatureData.sortBoneDataList();
-			
 			DBDataUtils.transformArmatureData(armatureData);
-			
+			armatureData.sortBoneDataList();
 			return armatureData;
 		}
 		
@@ -196,7 +199,6 @@
 			boneData.name = boneXML.@[ConstValues.A_NAME];
 			boneData.parent = boneXML.@[ConstValues.A_PARENT];
 			
-			boneData.global = new DBTransform();
 			boneData.global.x = boneData.transform.x = Number(boneXML.@[ConstValues.A_X]);
 			boneData.global.y = boneData.transform.y = Number(boneXML.@[ConstValues.A_Y]);
 			
@@ -266,7 +268,15 @@
 			animationData.loop = int(animationXML.@[ConstValues.A_LOOP]) == 1?0:1;
 			animationData.fadeTime = Number(animationXML.@[ConstValues.A_DURATION_TO]) / _frameRate;
 			animationData.duration = Number(animationXML.@[ConstValues.A_DURATION])/ _frameRate;
-			animationData.scale = animationData.duration / (Number(animationXML.@[ConstValues.A_DURATION_TWEEN]) / _frameRate);
+			var durationTween:Number = Number(animationXML.@[ConstValues.A_DURATION_TWEEN][0]);
+			if(isNaN(durationTween))
+			{
+				animationData.scale = 1;
+			}
+			else
+			{
+				animationData.scale = durationTween / _frameRate / animationData.duration;
+			}
 			animationData.tweenEasing = Number(animationXML.@[ConstValues.A_TWEEN_EASING][0]);
 			
 			parseTimeline(animationXML, animationData, parseMainFrame);
@@ -289,8 +299,6 @@
 			}
 			
 			DBDataUtils.addHideTimeline(animationData, armatureData);
-			
-			DBDataUtils.transformAnimationData(animationData, armatureData);
 			
 			return animationData;
 		}
@@ -332,8 +340,6 @@
 			frame.tweenRotate = Number(frameXML.@[ConstValues.A_TWEEN_ROTATE]);
 			frame.displayIndex = Number(frameXML.@[ConstValues.A_DISPLAY_INDEX]);
 			frame.zOrder = Number(frameXML.@[ConstValues.A_Z]);
-			
-			frame.global = new DBTransform();
 			
 			frame.global.x = 
 				frame.transform.x = Number(frameXML.@[ConstValues.A_X]);
