@@ -13,7 +13,7 @@ package dragonBones.display
 	import flash.geom.Matrix;
 	
 	/**
-	 * Provides an interface for display classes that can be used in this skeleton animation system.
+	 * Provides an interface for display classes that can be used in this DragonBones animation system.
 	 *
 	 */
 	public interface IDisplayBridge

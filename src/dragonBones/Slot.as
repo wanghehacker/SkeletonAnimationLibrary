@@ -17,6 +17,8 @@ package dragonBones
 		dragonBones_internal var _originZOrder:Number;
 		/** @private */
 		dragonBones_internal var _tweenZorder:Number;
+		/** @private */
+		dragonBones_internal var _isDisplayOnStage:Boolean;
 		
 		private var _offsetZOrder:Number;
 		
@@ -93,9 +95,10 @@ package dragonBones
 		{
 			if(displayIndex < 0)
 			{
-				if(_displayBridge.display)
+				if(_isDisplayOnStage)
 				{
-					_displayBridge.display = null;
+					_isDisplayOnStage = false;
+					_displayBridge.removeDisplay();
 					if(childArmature)
 					{
 						childArmature.animation.stop();
@@ -103,37 +106,45 @@ package dragonBones
 					}
 				}
 			}
-			else if(_displayIndex != displayIndex || !_displayBridge.display)
+			else
 			{
+				if(!_isDisplayOnStage)
+				{
+					_isDisplayOnStage = true;
+					if(this._armature)
+					{
+						_displayBridge.addDisplay(this._armature.display, this._armature._slotList.indexOf(this));
+						//this._armature._slotsZOrderChanged = true;
+					}
+				}
+				
 				var length:uint = _displayList.length;
 				if(displayIndex >= length && length > 0)
 				{
 					displayIndex = length - 1;
 				}
-				_displayIndex = displayIndex;
-				var content:Object = _displayList[_displayIndex];
-				if(content is Armature)
+				if(_displayIndex != displayIndex)
 				{
-					_displayBridge.display = (content as Armature).display;
-				}
-				else
-				{
-					_displayBridge.display = content;
-				}
-				
-				if(_dislayDataList && _displayIndex <= _dislayDataList.length)
-				{
-					this._origin.copy(_dislayDataList[_displayIndex].transform);
-				}
-				
-				if(this._armature)
-				{
-					_displayBridge.addDisplay(this._armature.display, this._armature._slotList.indexOf(this));
-					this._armature._slotsZOrderChanged = true;
-					if(childArmature)
+					_displayIndex = displayIndex;
+					var content:Object = _displayList[_displayIndex];
+					if(content is Armature)
 					{
-						childArmature.animation.play();
+						_displayBridge.display = (content as Armature).display;
 					}
+					else
+					{
+						_displayBridge.display = content;
+					}
+					
+					if(_dislayDataList && _displayIndex <= _dislayDataList.length)
+					{
+						this._origin.copy(_dislayDataList[_displayIndex].transform);
+					}
+				}
+				
+				if(childArmature)
+				{
+					childArmature.animation.play();
 				}
 			}
 		}
@@ -151,6 +162,7 @@ package dragonBones
 			super.setArmature(value);
 			if(this._armature)
 			{
+				this._armature._slotsZOrderChanged = true;
 				_displayBridge.addDisplay(this._armature.display);
 			}
 			else
@@ -170,6 +182,8 @@ package dragonBones
 			_originZOrder = 0;
 			_tweenZorder = 0;
 			_offsetZOrder = 0;
+			
+			_isDisplayOnStage = false;
 		}
 		
 		override public function dispose():void
@@ -188,7 +202,7 @@ package dragonBones
 		{
 			super.update();
 			
-			if(_displayBridge.display)
+			if(_isDisplayOnStage && _displayBridge.display)
 			{
 				_displayBridge.updateTransform(this._globalTransformMatrix, this._global);
 			}

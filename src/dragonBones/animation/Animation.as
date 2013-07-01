@@ -72,9 +72,11 @@
 		public static const FADE_OUT_SAME_LAYER:String = "fadeOutSameLayer";
 		public static const FADE_OUT_ALL_LAYER:String = "fadeOutAllLayer";
 		
+		/** @private */
+		dragonBones_internal var _animationLayer:Vector.<Vector.<AnimationState>>;
+		
 		private var _armature:Armature;
 		private var _isPlaying:Boolean;
-		private var _animationLayer:Vector.<Vector.<AnimationState>>;
 		
 		public function get movementList():Vector.<String>
 		{
@@ -84,6 +86,18 @@
 		public function get movementID():String
 		{
 			return _lastAnimationState?_lastAnimationState.name:null;
+		}
+		
+		dragonBones_internal var _lastAnimationState:AnimationState;
+		public function get lastAnimationState():AnimationState
+		{
+			return _lastAnimationState;
+		}
+		
+		private var _animationList:Vector.<String>;
+		public function get animationList():Vector.<String>
+		{
+			return _animationList;
 		}
 		
 		public function get isPlaying():Boolean
@@ -117,33 +131,6 @@
 			return false;
 		}
 		
-		private var _timeScale:Number = 1;
-		public function get timeScale():Number
-		{
-			return _timeScale;
-		}
-		public function set timeScale(value:Number):void
-		{
-			if (value < 0)
-			{
-				value = 0;
-			}
-			_timeScale = value;
-		}
-		
-		dragonBones_internal var _lastAnimationState:AnimationState
-		public function get lastAnimationState():AnimationState
-		{
-			return _lastAnimationState;
-		}
-		
-		private var _animationList:Vector.<String>;
-		
-		public function get animationList():Vector.<String>
-		{
-			return _animationList;
-		}
-		
 		private var _animationDataList:Vector.<AnimationData>;
 		public function get animationDataList():Vector.<AnimationData>
 		{
@@ -157,6 +144,20 @@
 			{
 				_animationList[_animationList.length] = animationData.name;
 			}
+		}
+		
+		private var _timeScale:Number = 1;
+		public function get timeScale():Number
+		{
+			return _timeScale;
+		}
+		public function set timeScale(value:Number):void
+		{
+			if (value < 0)
+			{
+				value = 0;
+			}
+			_timeScale = value;
 		}
 		
 		/**
@@ -200,9 +201,15 @@
 		 * Move the playhead to that AnimationData
 		 * @param	The name of the AnimationData to play.
 		 * @param	A fade time to apply (> 0)
-		 * @param	The duration in seconds of that MovementData.
-		 * @param	Whether that MovementData should loop or play only once (true/false).
-		 * @see dragonBones.objects.MovementData.
+		 * @param	The duration scale of that AnimationData.
+		 * @param	Loop(0:loop forever, 1~+∞:loop times, -1~-∞:will fade animation after loop complete).
+		 * @param	The layer of the animation.
+		 * @param	Play mode.
+		 * @param	Display control.
+		 * @param	Pause other animation playing.
+		 * @param	Pause this animation playing before fade in complete.
+		 * @see dragonBones.objects.AnimationData.
+		 * @see dragonBones.animation.AnimationState.
 		 */
 		public function gotoAndPlay(
 			animationName:String, 

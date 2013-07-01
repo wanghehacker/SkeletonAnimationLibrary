@@ -8,7 +8,6 @@ package dragonBones.events
 	*/
 	import dragonBones.Armature;
 	import dragonBones.animation.AnimationState;
-	import dragonBones.core.DBObject;
 	
 	import flash.events.Event;
 

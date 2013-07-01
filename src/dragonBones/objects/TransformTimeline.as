@@ -6,6 +6,7 @@ package dragonBones.objects
 	{
 		public static const HIDE_TIMELINE:TransformTimeline = new TransformTimeline();
 		
+		public var transformed:Boolean;
 		public var originTransform:DBTransform;
 		public var originPivot:Point;
 		

@@ -87,6 +87,10 @@ package dragonBones.utils
 							//transform to tweenValues.
 							frame.transform.copy(_helpTransform1);
 						}
+						else
+						{
+							frame.transform.copy(frame.global);
+						}
 						
 						frame.transform.x -= boneData.transform.x;
 						frame.transform.y -= boneData.transform.y;
@@ -94,8 +98,13 @@ package dragonBones.utils
 						frame.transform.skewY -= boneData.transform.skewY;
 						frame.transform.scaleX -= boneData.transform.scaleX;
 						frame.transform.scaleY -= boneData.transform.scaleY;
-						frame.pivot.x -= boneData.pivot.x;
-						frame.pivot.y -= boneData.pivot.y;
+						
+						if(!timeline.transformed)
+						{
+							frame.pivot.x -= boneData.pivot.x;
+							frame.pivot.y -= boneData.pivot.y;
+							frame.zOrder -= slotData.zOrder;
+						}
 						
 						if(!originTransform)
 						{
@@ -103,9 +112,12 @@ package dragonBones.utils
 							originTransform.copy(frame.transform);
 							originTransform.skewX = TransformUtils.formatRadian(originTransform.skewX);
 							originTransform.skewY = TransformUtils.formatRadian(originTransform.skewY);
-							originPivot = timeline.originPivot;
-							originPivot.x = frame.pivot.x;
-							originPivot.y = frame.pivot.y;
+							if(!timeline.transformed)
+							{
+								originPivot = timeline.originPivot;
+								originPivot.x = frame.pivot.x;
+								originPivot.y = frame.pivot.y;
+							}
 						}
 						
 						frame.transform.x -= originTransform.x;
@@ -114,11 +126,14 @@ package dragonBones.utils
 						frame.transform.skewY = TransformUtils.formatRadian(frame.transform.skewY - originTransform.skewY);
 						frame.transform.scaleX -= originTransform.scaleX;
 						frame.transform.scaleY -= originTransform.scaleY;
-						frame.pivot.x -= originPivot.x;
-						frame.pivot.y -= originPivot.y;
 						
-						frame.zOrder -= slotData.zOrder;
+						if(!timeline.transformed)
+						{
+							frame.pivot.x -= originPivot.x;
+							frame.pivot.y -= originPivot.y;
+						}
 					}
+					timeline.transformed = true;
 				}
 			}
 		}

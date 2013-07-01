@@ -92,8 +92,6 @@ package dragonBones.animation
 		private var _tweenColor:Boolean;
 		
 		private var _totalTime:Number;
-		private var _scale:Number;
-		private var _offset:Number;
 		
 		public function TimelineState()
 		{
@@ -115,7 +113,7 @@ package dragonBones.animation
 			_originPivot = _timeline.originPivot;
 			
 			/*
-			var rotation:Number = dbObject.origin.skewX + dbObject.node.skewX + dbObject._aniTransform.skewX;
+			var rotation:Number = object.origin.skewX + object.node.skewX + object._aniTransform.skewX;
 			
 			if(rotation * transform.skewX < 0 && (Math.abs(rotation) > Math.PI * 0.5 || Math.abs(transform.skewX) > Math.PI * 0.5))
 			{
@@ -133,9 +131,6 @@ package dragonBones.animation
 			*/
 			
 			_totalTime = _animationState.totalTime;
-			
-			_scale = _timeline.scale;
-			_offset = _timeline.offset;
 			
 			transform.x = 0;
 			transform.y = 0;
@@ -204,6 +199,27 @@ package dragonBones.animation
 			}
 			
 			_currentFrame = _timeline.frameList[0] as TransformFrame;
+			
+			if(_currentFrame.color)
+			{
+				_object.updateColor(
+					_currentFrame.color.alphaOffset, 
+					_currentFrame.color.redOffset, 
+					_currentFrame.color.greenOffset, 
+					_currentFrame.color.blueOffset, 
+					_currentFrame.color.alphaMultiplier, 
+					_currentFrame.color.redMultiplier, 
+					_currentFrame.color.greenMultiplier, 
+					_currentFrame.color.blueMultiplier,
+					true
+				);
+			}
+			else
+			{
+				_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
+			}
+			
+			
 			_object.arriveAtFrame(_currentFrame, this, _animationState, false);
 		}
 		
@@ -275,8 +291,6 @@ package dragonBones.animation
 				{
 					_tweenEasing = _animationState.clip.tweenEasing;
 				}
-				
-				var _tweenedColor:Boolean = _tweenColor;
 				
 				if(isNaN(_tweenEasing))
 				{
@@ -408,9 +422,26 @@ package dragonBones.animation
 					}
 				}
 				
-				if(!_tweenColor && _tweenedColor)
+				if(!_tweenColor && _object._isColorChanged)
 				{
-					_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1);
+					if(_currentFrame.color)
+					{
+						_object.updateColor(
+							_currentFrame.color.alphaOffset, 
+							_currentFrame.color.redOffset, 
+							_currentFrame.color.greenOffset, 
+							_currentFrame.color.blueOffset, 
+							_currentFrame.color.alphaMultiplier, 
+							_currentFrame.color.redMultiplier, 
+							_currentFrame.color.greenMultiplier, 
+							_currentFrame.color.blueMultiplier, 
+							true
+						);
+					}
+					else
+					{
+						_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
+					}
 				}
 				_object.arriveAtFrame(_currentFrame, this, _animationState, false);
 			}
@@ -462,7 +493,8 @@ package dragonBones.animation
 						_currentFrame.color.alphaMultiplier + _durationColor.alphaMultiplier * progress,
 						_currentFrame.color.redMultiplier + _durationColor.redMultiplier * progress,
 						_currentFrame.color.greenMultiplier + _durationColor.greenMultiplier * progress,
-						_currentFrame.color.blueMultiplier + _durationColor.blueMultiplier * progress
+						_currentFrame.color.blueMultiplier + _durationColor.blueMultiplier * progress,
+						true
 					);
 				}
 				else
@@ -472,10 +504,11 @@ package dragonBones.animation
 						_durationColor.redOffset * progress,
 						_durationColor.greenOffset * progress,
 						_durationColor.blueOffset * progress,
-						_durationColor.alphaMultiplier * progress,
-						_durationColor.redMultiplier * progress,
-						_durationColor.greenMultiplier * progress,
-						_durationColor.blueMultiplier * progress
+						1 + _durationColor.alphaMultiplier * progress,
+						1 + _durationColor.redMultiplier * progress,
+						1 + _durationColor.greenMultiplier * progress,
+						1 + _durationColor.blueMultiplier * progress,
+						false
 					);
 				}
 			}

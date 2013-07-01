@@ -24,6 +24,8 @@ package dragonBones.core
 		protected var _globalTransformMatrix:Matrix;
 		/** @private */
 		protected var _scaleType:int;
+		/** @private */
+		dragonBones_internal var _isColorChanged:Boolean;
 		
 		/** @private */
 		protected var _global:DBTransform;
@@ -190,10 +192,11 @@ package dragonBones.core
 			aMultiplier:Number,
 			rMultiplier:Number,
 			gMultiplier:Number,
-			bMultiplier:Number
+			bMultiplier:Number,
+			isColorChanged:Boolean
 		):void
 		{
-			
+			 
 		}
 			
 		/** @private */

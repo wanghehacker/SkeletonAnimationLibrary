@@ -104,19 +104,24 @@
 			aMultiplier:Number, 
 			rMultiplier:Number, 
 			gMultiplier:Number, 
-			bMultiplier:Number
+			bMultiplier:Number,
+			isColorChanged:Boolean
 		):void
 		{
-			_slot._displayBridge.updateColor(
-				aOffset, 
-				rOffset, 
-				gOffset, 
-				bOffset, 
-				aMultiplier, 
-				rMultiplier, 
-				gMultiplier, 
-				bMultiplier
-			);
+			if(isColorChanged || _isColorChanged)
+			{
+				_slot._displayBridge.updateColor(
+					aOffset, 
+					rOffset, 
+					gOffset, 
+					bOffset, 
+					aMultiplier, 
+					rMultiplier, 
+					gMultiplier, 
+					bMultiplier
+				);
+			}
+			_isColorChanged = isColorChanged;
 		}
 		
 		/** @private */
@@ -136,7 +141,7 @@
 							if(tansformFrame.zOrder != _slot._tweenZorder)
 							{
 								_slot._tweenZorder = tansformFrame.zOrder;
-								_armature._slotsZOrderChanged = true;
+								this._armature._slotsZOrderChanged = true;
 							}
 						}
 						_slot.changeDisplay(displayIndex);
@@ -144,13 +149,13 @@
 					}
 				}
 				
-				if(frame.event && _armature.hasEventListener(FrameEvent.OBJECT_FRAME_EVENT))
+				if(frame.event && this._armature.hasEventListener(FrameEvent.OBJECT_FRAME_EVENT))
 				{
 					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.OBJECT_FRAME_EVENT);
 					frameEvent.object = this;
 					frameEvent.animationState = animationState;
 					frameEvent.frameLabel = frame.event;
-					_armature.dispatchEvent(frameEvent);
+					this._armature.dispatchEvent(frameEvent);
 				}
 				
 				if(frame.action)
@@ -201,6 +206,7 @@
 			{
 				throw new ArgumentError("An Bone cannot be added as a child to itself or one of its children (or children's children, etc.)");
 			}
+			
 			if(child.parent)
 			{
 				child.parent.removeChild(child);

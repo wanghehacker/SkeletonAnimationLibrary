@@ -2,7 +2,7 @@ package dragonBones.objects
 {
 	import flash.geom.Point;
 
-	final public class SkeletonData
+	public class SkeletonData
 	{
 		public var name:String;
 		

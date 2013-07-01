@@ -29,11 +29,11 @@
 		private static var _frameRate:uint;
 		private static var _helpTransform1:DBTransform = new DBTransform();
 		private static var _helpTransform2:DBTransform = new DBTransform();
-		private static var _currentSkeletonData:SkeletonData;
+		private static var _currentData:SkeletonData;
 		
-		private static function checkVersion(skeletonXML:XML):void
+		private static function checkVersion(xml:XML):void
 		{
-			var version:String = skeletonXML.@[ConstValues.A_VERSION];
+			var version:String = xml.@[ConstValues.A_VERSION];
 			switch (version)
 			{
 				case "1.5":
@@ -51,12 +51,12 @@
 		}
 		/**
 		 * Compress all data into a ByteArray for serialization.
-		 * @param	skeletonXML The Skeleton data.
+		 * @param	xml The DragonBones data.
 		 * @param	textureAtlasXML The TextureAtlas data.
 		 * @param	byteArray The ByteArray representing the map.
 		 * @return ByteArray. A DragonBones compatible ByteArray.
 		 */
-		public static function compressData(skeletonXML:XML, textureAtlasXML:XML, byteArray:ByteArray):ByteArray
+		public static function compressData(xml:XML, textureAtlasXML:XML, byteArray:ByteArray):ByteArray
 		{
 			var byteArrayCopy:ByteArray = new ByteArray();
 			byteArrayCopy.writeBytes(byteArray);
@@ -70,7 +70,7 @@
 			byteArrayCopy.writeInt(xmlBytes.length);
 			
 			xmlBytes.length = 0;
-			xmlBytes.writeUTFBytes(skeletonXML.toXMLString());
+			xmlBytes.writeUTFBytes(xml.toXMLString());
 			xmlBytes.compress();
 			
 			byteArrayCopy.position = byteArrayCopy.length;
@@ -84,9 +84,9 @@
 		 * @param	compressedByteArray The ByteArray to decompress.
 		 * @return A DecompressedData instance.
 		 */
-		public static function decompressData(compressedByteArray:ByteArray):DecompressedData
+		public static function decompressData(byteArray:ByteArray):DecompressedData
 		{
-			var dataType:String = BytesType.getType(compressedByteArray);
+			var dataType:String = BytesType.getType(byteArray);
 			switch (dataType)
 			{
 				case BytesType.SWF: 
@@ -95,32 +95,32 @@
 				case BytesType.ATF: 
 					try
 					{
-						compressedByteArray.position = compressedByteArray.length - 4;
-						var strSize:int = compressedByteArray.readInt();
-						var position:uint = compressedByteArray.length - 4 - strSize;
+						byteArray.position = byteArray.length - 4;
+						var strSize:int = byteArray.readInt();
+						var position:uint = byteArray.length - 4 - strSize;
 						
 						var xmlBytes:ByteArray = new ByteArray();
-						xmlBytes.writeBytes(compressedByteArray, position, strSize);
+						xmlBytes.writeBytes(byteArray, position, strSize);
 						xmlBytes.uncompress();
-						compressedByteArray.length = position;
+						byteArray.length = position;
 						
-						var skeletonXML:XML = XML(xmlBytes.readUTFBytes(xmlBytes.length));
+						var xml:XML = XML(xmlBytes.readUTFBytes(xmlBytes.length));
 						
-						compressedByteArray.position = compressedByteArray.length - 4;
-						strSize = compressedByteArray.readInt();
-						position = compressedByteArray.length - 4 - strSize;
+						byteArray.position = byteArray.length - 4;
+						strSize = byteArray.readInt();
+						position = byteArray.length - 4 - strSize;
 						
 						xmlBytes.length = 0;
-						xmlBytes.writeBytes(compressedByteArray, position, strSize);
+						xmlBytes.writeBytes(byteArray, position, strSize);
 						xmlBytes.uncompress();
-						compressedByteArray.length = position;
+						byteArray.length = position;
 						var textureAtlasXML:XML = XML(xmlBytes.readUTFBytes(xmlBytes.length));
 					}
 					catch (e:Error)
 					{
 						throw new Error("Data error!");
 					}
-					var decompressedData:DecompressedData = new DecompressedData(skeletonXML, textureAtlasXML, compressedByteArray);
+					var decompressedData:DecompressedData = new DecompressedData(xml, textureAtlasXML, byteArray);
 					decompressedData.dataType = dataType;
 					return decompressedData;
 				case BytesType.ZIP:
@@ -130,37 +130,39 @@
 			}
 			return null;
 		}
+		
 		/**
 		 * Parse the SkeletonData.
-		 * @param	skeletonXML The Skeleton xml to parse.
+		 * @param	xml The SkeletonData xml to parse.
 		 * @return A SkeletonData instance.
 		 */
-		public static function parseSkeletonData(skeletonXML:XML):SkeletonData
+		public static function parseSkeletonData(xml:XML):SkeletonData
 		{
-			checkVersion(skeletonXML);
-			_frameRate = int(skeletonXML.@[ConstValues.A_FRAME_RATE]);
+			checkVersion(xml);
+			_frameRate = int(xml.@[ConstValues.A_FRAME_RATE]);
 			
-			var skeletonData:SkeletonData = new SkeletonData();
-			skeletonData.name = skeletonXML.@[ConstValues.A_NAME];
+			var data:SkeletonData = new SkeletonData();
+			data.name = xml.@[ConstValues.A_NAME];
 			
-			_currentSkeletonData = skeletonData;
+			_currentData = data;
 			
-			var armatureXMLList:XMLList = skeletonXML[ConstValues.ARMATURES][ConstValues.ARMATURE];
+			var armatureXMLList:XMLList = xml[ConstValues.ARMATURES][ConstValues.ARMATURE];
 			var length:int = armatureXMLList.length();
 			for(var i:int = 0;i< length; i ++)
 			{
-				skeletonData.addArmatureData(parseArmatureData(armatureXMLList[i]));
+				data.addArmatureData(parseArmatureData(armatureXMLList[i]));
 			}
 			
-			var animationsXMLList:XMLList = skeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION];
+			var animationsXMLList:XMLList = xml[ConstValues.ANIMATIONS][ConstValues.ANIMATION];
 			length = animationsXMLList.length();
 			for(i = 0;i< length; i ++)
 			{
 				var animationsXML:XML = animationsXMLList[i];
-				var armatureData:ArmatureData = skeletonData.getArmatureData(animationsXML.@[ConstValues.A_NAME]);
+				var armatureData:ArmatureData = data.getArmatureData(animationsXML.@[ConstValues.A_NAME]);
 				if(armatureData)
 				{
-					for each(var animationXML:XML in animationsXML[ConstValues.MOVEMENT])
+					var animationXMLList:XMLList = animationsXML[ConstValues.MOVEMENT];
+					for each(var animationXML:XML in animationXMLList)
 					{
 						armatureData.addAnimationData(parseAnimationData(animationXML, armatureData));
 					}
@@ -169,9 +171,9 @@
 				}
 			}
 			
-			_currentSkeletonData = null;
+			_currentData = null;
 			
-			return skeletonData;
+			return data;
 		}
 		
 		private static function parseArmatureData(armatureXML:XML):ArmatureData
@@ -218,14 +220,16 @@
 		{
 			var skinData:SkinData = new SkinData();
 			//skinData.name
-			for each(var boneXML:XML in armatureXML[ConstValues.BONE])
+			var boneXMLList:XMLList = armatureXML[ConstValues.BONE];
+			for each(var boneXML:XML in boneXMLList)
 			{
 				var slotData:SlotData = new SlotData();
 				skinData.addSlotData(slotData);
 				slotData.name = boneXML.@[ConstValues.A_NAME];
 				slotData.parent = boneXML.@[ConstValues.A_NAME];
 				slotData.zOrder = boneXML.@[ConstValues.A_Z];
-				for each(var displayXML:XML in boneXML[ConstValues.DISPLAY])
+				var displayXMLList:XMLList = boneXML[ConstValues.DISPLAY];
+				for each(var displayXML:XML in displayXMLList)
 				{
 					var displayData:DisplayData = new DisplayData();
 					slotData.addDisplayData(displayData);
@@ -247,13 +251,13 @@
 					displayData.transform.skewX = 0;
 					displayData.transform.skewY = 0;
 					
-					_currentSkeletonData.addSubTexturePivot(
+					_currentData.addSubTexturePivot(
 						Number(displayXML.@[ConstValues.A_PIVOT_X]), 
 						Number(displayXML.@[ConstValues.A_PIVOT_Y]), 
 						displayData.name
 					);
 					
-					displayData.pivot = _currentSkeletonData.getSubTexturePivot(displayData.name);
+					displayData.pivot = _currentData.getSubTexturePivot(displayData.name);
 				}
 			}
 			
@@ -306,7 +310,8 @@
 		private static function parseTimeline(timelineXML:XML, timeline:Timeline, frameParser:Function):void
 		{
 			var position:Number = 0;
-			for each(var frameXML:XML in timelineXML[ConstValues.FRAME])
+			var frameXMLList:XMLList = timelineXML[ConstValues.FRAME];
+			for each(var frameXML:XML in frameXMLList)
 			{
 				var frame:Frame = frameParser(frameXML);
 				frame.position = position;

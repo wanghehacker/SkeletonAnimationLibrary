@@ -17,8 +17,6 @@
 	
 	import flash.display.BitmapData;
 	import flash.display.MovieClip;
-	import flash.geom.Rectangle;
-	import flash.utils.ByteArray;
 	
 	import starling.core.Starling;
 	import starling.display.Image;
@@ -72,44 +70,9 @@
 			super();
 			scaleForTexture = 1;
 		}
-		/**
-		 * Generates an Armature instance.
-		 * @return Armature An Armature instance.
-		 */
-		override protected function generateArmature():Armature
-		{
-			var armature:Armature = new Armature(new Sprite());
-			return armature;
-		}
 		
 		/** @private */
-		override protected function generateSlot():Slot
-		{
-			var slot:Slot = new Slot(new StarlingDisplayBridge());
-			return slot;
-		}
-		/**
-		 * Generates a starling DisplayObject
-		 * @param	textureAtlas The TextureAtlas.
-		 * @param	fullName A qualified name.
-		 * @param	pivotX A pivot x based value.
-		 * @param	pivotY A pivot y based value.
-		 * @return
-		 */
-		override protected function generateTextureDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
-		{
-			var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
-			if (subTexture)
-			{
-				var image:Image = new Image(subTexture);
-				image.pivotX = pivotX;
-				image.pivotY = pivotY;
-				return image;
-			}
-			return null;
-		}
-		
-		override protected function generateTextureAtlas(content:Object, textureAtlasXML:XML):Object
+		override protected function generateTextureAtlas(content:Object, textureAtlasXML:XML):ITextureAtlas
 		{
 			var texture:Texture;
 			var bitmapData:BitmapData;
@@ -150,6 +113,34 @@
 				bitmapData.dispose();
 			}
 			return textureAtlas;
+		}
+		
+		/** @private */
+		override protected function generateArmature():Armature
+		{
+			var armature:Armature = new Armature(new Sprite());
+			return armature;
+		}
+		
+		/** @private */
+		override protected function generateSlot():Slot
+		{
+			var slot:Slot = new Slot(new StarlingDisplayBridge());
+			return slot;
+		}
+		
+		/** @private */
+		override protected function generateDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
+		{
+			var subTexture:SubTexture = (textureAtlas as TextureAtlas).getTexture(fullName) as SubTexture;
+			if (subTexture)
+			{
+				var image:Image = new Image(subTexture);
+				image.pivotX = pivotX;
+				image.pivotY = pivotY;
+				return image;
+			}
+			return null;
 		}
 	}
 }
