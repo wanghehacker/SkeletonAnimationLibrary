@@ -71,6 +71,7 @@ package dragonBones.utils
 					
 					var originTransform:DBTransform = null;
 					var originPivot:Point = null;
+					var prevFrame:TransformFrame = null;
 					var length:uint = frameList.length;
 					for(var k:int = 0;k < length;k ++)
 					{
@@ -132,6 +133,7 @@ package dragonBones.utils
 							frame.pivot.x -= originPivot.x;
 							frame.pivot.y -= originPivot.y;
 						}
+						prevFrame = frame;
 					}
 					timeline.transformed = true;
 				}
@@ -148,22 +150,24 @@ package dragonBones.utils
 				if(currentFrame.position <= position && currentFrame.position + currentFrame.duration > position)
 				{
 					var tweenEasing:Number = currentFrame.tweenEasing;
-					var index:Number = frameList.indexOf(currentFrame);
-					if(index == frameList.length - 1 || isNaN(tweenEasing) || position == currentFrame.position)
+					if(i == frameList.length - 1 || isNaN(tweenEasing) || position == currentFrame.position)
 					{
 						retult.copy(currentFrame.global);
 					}
 					else
 					{
 						var progress:Number = (position - currentFrame.position) / currentFrame.duration;
-						progress = TimelineState.getEaseValue(progress, tweenEasing);
+						if(tweenEasing)
+						{
+							progress = TimelineState.getEaseValue(progress, tweenEasing);
+						}
 						
-						var nextFrame:TransformFrame = timeline.frameList[index + 1] as TransformFrame;
+						var nextFrame:TransformFrame = timeline.frameList[i + 1] as TransformFrame;
 						
 						retult.x = currentFrame.global.x +  (nextFrame.global.x - currentFrame.global.x) * progress;
 						retult.y = currentFrame.global.y +  (nextFrame.global.y - currentFrame.global.y) * progress;
-						retult.skewX = currentFrame.global.skewX +  (nextFrame.global.skewX - currentFrame.global.skewX) * progress;
-						retult.skewY = currentFrame.global.skewY +  (nextFrame.global.skewY - currentFrame.global.skewY) * progress;
+						retult.skewX = TransformUtils.formatRadian(currentFrame.global.skewX +  (nextFrame.global.skewX - currentFrame.global.skewX) * progress);
+						retult.skewY = TransformUtils.formatRadian(currentFrame.global.skewY +  (nextFrame.global.skewY - currentFrame.global.skewY) * progress);
 						retult.scaleX = currentFrame.global.scaleX +  (nextFrame.global.scaleX - currentFrame.global.scaleX) * progress;
 						retult.scaleY = currentFrame.global.scaleY +  (nextFrame.global.scaleY - currentFrame.global.scaleY) * progress;
 					}

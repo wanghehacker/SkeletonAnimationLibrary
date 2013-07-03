@@ -20,6 +20,8 @@ package dragonBones
 		/** @private */
 		dragonBones_internal var _isDisplayOnStage:Boolean;
 		
+		private var _isHideDisplay:Boolean;
+		
 		private var _offsetZOrder:Number;
 		
 		public function get zOrder():Number
@@ -32,7 +34,10 @@ package dragonBones
 			if(zOrder != value)
 			{
 				_offsetZOrder = value - _originZOrder - _tweenZorder;
-				this._armature._slotsZOrderChanged = true;
+				if(this._armature)
+				{
+					this._armature._slotsZOrderChanged = true;
+				}
 			}
 		}
 		
@@ -51,6 +56,10 @@ package dragonBones
 		{
 			_displayList[_displayIndex] = value;
 			_displayBridge.display = value;
+			if(!_isHideDisplay && _displayBridge.display)
+			{
+				_isDisplayOnStage = true;
+			}
 		}
 		
 		public function get childArmature():Armature
@@ -95,22 +104,17 @@ package dragonBones
 		{
 			if(displayIndex < 0)
 			{
-				if(_isDisplayOnStage)
+				if(!_isHideDisplay)
 				{
-					_isDisplayOnStage = false;
+					_isHideDisplay = true;
 					_displayBridge.removeDisplay();
-					if(childArmature)
-					{
-						childArmature.animation.stop();
-						childArmature.animation._lastAnimationState = null;
-					}
 				}
 			}
 			else
 			{
-				if(!_isDisplayOnStage)
+				if(_isHideDisplay)
 				{
-					_isDisplayOnStage = true;
+					_isHideDisplay = false;
 					if(this._armature)
 					{
 						_displayBridge.addDisplay(this._armature.display, this._armature._slotList.indexOf(this));
@@ -141,10 +145,26 @@ package dragonBones
 						this._origin.copy(_dislayDataList[_displayIndex].transform);
 					}
 				}
-				
+			}
+			
+			if(!_isHideDisplay && _displayBridge.display)
+			{
+				if(!_isDisplayOnStage)
+				{
+					_isDisplayOnStage = true;
+					if(childArmature)
+					{
+						childArmature.animation.play();
+					}
+				}
+			}
+			else if(_isDisplayOnStage)
+			{
+				_isDisplayOnStage = false;
 				if(childArmature)
 				{
-					childArmature.animation.play();
+					childArmature.animation.stop();
+					childArmature.animation._lastAnimationState = null;
 				}
 			}
 		}
@@ -157,6 +177,7 @@ package dragonBones
 			}
 		}
 		
+		/** @private */
 		override dragonBones_internal function setArmature(value:Armature):void
 		{
 			super.setArmature(value);
@@ -184,6 +205,7 @@ package dragonBones
 			_offsetZOrder = 0;
 			
 			_isDisplayOnStage = false;
+			_isHideDisplay = false;
 		}
 		
 		override public function dispose():void
@@ -198,11 +220,12 @@ package dragonBones
 			_dislayDataList = null;
 		}
 		
+		/** @private */
 		override dragonBones_internal function update():void
 		{
 			super.update();
 			
-			if(_isDisplayOnStage && _displayBridge.display)
+			if(_isDisplayOnStage)
 			{
 				_displayBridge.updateTransform(this._globalTransformMatrix, this._global);
 			}

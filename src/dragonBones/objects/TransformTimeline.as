@@ -1,12 +1,13 @@
 package dragonBones.objects
 {
 	import flash.geom.Point;
-
+	
 	public final class TransformTimeline extends Timeline
 	{
 		public static const HIDE_TIMELINE:TransformTimeline = new TransformTimeline();
 		
 		public var transformed:Boolean;
+		
 		public var originTransform:DBTransform;
 		public var originPivot:Point;
 		

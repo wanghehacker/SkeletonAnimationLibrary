@@ -23,8 +23,8 @@ package dragonBones.utils
 			transform.x = _helpMatrix.a * x + _helpMatrix.c * y + _helpMatrix.tx;
 			transform.y = _helpMatrix.d * y + _helpMatrix.b * x + _helpMatrix.ty;
 			
-			transform.skewX -= parent.skewX;
-			transform.skewY -= parent.skewY;
+			transform.skewX = formatRadian(transform.skewX - parent.skewX);
+			transform.skewY = formatRadian(transform.skewY - parent.skewY);
 		}
 		
 		public static function transformToMatrix(transform:DBTransform, matrix:Matrix):void
@@ -51,5 +51,5 @@ package dragonBones.utils
 			return radian;
 		}
 	}
-
+	
 }

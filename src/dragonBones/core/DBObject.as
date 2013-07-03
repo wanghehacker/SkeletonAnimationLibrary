@@ -164,8 +164,8 @@ package dragonBones.core
 				
 				if(_parent.scaleMode >= _scaleType)
 				{
-					_global.scaleX *= _parent.global.scaleX;
-					_global.scaleY *= _parent.global.scaleY;
+					_global.scaleX *= _parent._global.scaleX;
+					_global.scaleY *= _parent._global.scaleY;
 				}
 			}
 			else

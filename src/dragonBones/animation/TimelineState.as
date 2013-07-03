@@ -422,7 +422,7 @@ package dragonBones.animation
 					}
 				}
 				
-				if(!_tweenColor && _object._isColorChanged)
+				if(!_tweenColor)
 				{
 					if(_currentFrame.color)
 					{
@@ -438,7 +438,7 @@ package dragonBones.animation
 							true
 						);
 					}
-					else
+					else if(_object._isColorChanged)
 					{
 						_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
 					}

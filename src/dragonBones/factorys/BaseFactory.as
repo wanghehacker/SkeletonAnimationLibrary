@@ -288,7 +288,14 @@ package dragonBones.factorys
 				var bone:Bone = new Bone();
 				bone.name = boneData.name;
 				bone.origin.copy(boneData.transform);
-				armature.addBone(bone, boneData.parent);
+				if(armatureData.getBoneData(boneData.parent))
+				{
+					armature.addBone(bone, boneData.parent);
+				}
+				else
+				{
+					armature.addBone(bone);
+				}
 			}
 			
 			if(animationName && animationName != armatureName)
@@ -321,7 +328,7 @@ package dragonBones.factorys
 			for each(var slotData:SlotData in skinData.slotDataList)
 			{
 				bone = armature.getBone(slotData.parent);
-				if(!boneData)
+				if(!bone)
 				{
 					continue;
 				}

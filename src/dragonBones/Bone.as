@@ -17,6 +17,7 @@
 		//0/1/2
 		public var scaleMode:int;
 		
+		/** @private */
 		dragonBones_internal var _tweenPivot:Point;
 		
 		private var _children:Vector.<DBObject>;
@@ -44,6 +45,7 @@
 			}
 		}
 		
+		/** @private */
 		override dragonBones_internal function setArmature(value:Armature):void
 		{
 			super.setArmature(value);
@@ -82,6 +84,7 @@
 			_tweenPivot = null;
 		}
 		
+		/** @private */
 		override dragonBones_internal function update():void
 		{
 			super.update();

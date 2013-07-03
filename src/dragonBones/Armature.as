@@ -177,7 +177,7 @@
 			{
 				var slot:Slot = _slotList[i];
 				slot.update();
-				if(slot._isDisplayOnStage && slot.display)
+				if(slot._isDisplayOnStage)
 				{
 					var childArmature:Armature = slot.childArmature;
 					if(childArmature)
@@ -326,7 +326,7 @@
 			while(i --)
 			{
 				var slot:Slot = _slotList[i];
-				if(slot._isDisplayOnStage && slot.display)
+				if(slot._isDisplayOnStage)
 				{
 					slot._displayBridge.addDisplay(display);
 				}
@@ -387,11 +387,6 @@
 			}
 		}
 		
-		private function sortSlot(slot1:Slot, slot2:Slot):int
-		{
-			return slot1.zOrder < slot2.zOrder?1: -1;
-		}
-		
 		/** @private */
 		dragonBones_internal function sortBoneList():void
 		{
@@ -422,6 +417,11 @@
 				_boneList[i] = _helpArray[i].bone;
 			}
 			_helpArray.length = 0;
+		}
+		
+		private function sortSlot(slot1:Slot, slot2:Slot):int
+		{
+			return slot1.zOrder < slot2.zOrder?1: -1;
 		}
 		
 	}

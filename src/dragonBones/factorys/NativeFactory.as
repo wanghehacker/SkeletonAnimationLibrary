@@ -3,8 +3,8 @@ package dragonBones.factorys
 	import dragonBones.Armature;
 	import dragonBones.Slot;
 	import dragonBones.display.NativeDisplayBridge;
-	import dragonBones.textures.NativeTextureAtlas;
 	import dragonBones.textures.ITextureAtlas;
+	import dragonBones.textures.NativeTextureAtlas;
 	
 	import flash.display.MovieClip;
 	import flash.display.Shape;
@@ -20,6 +20,8 @@ package dragonBones.factorys
 	
 	public class NativeFactory extends BaseFactory
 	{
+		public var fillBitmapSmooth:Boolean;
+		
 		public function NativeFactory()
 		{
 			super();
@@ -78,17 +80,17 @@ package dragonBones.factorys
 					if (subTextureData)
 					{
 						var displayShape:Shape = new Shape();
-						
 						_helpMatirx.a = 1;
 						_helpMatirx.b = 0;
 						_helpMatirx.c = 0;
 						_helpMatirx.d = 1;
 						_helpMatirx.scale(nativeTextureAtlas.scale, nativeTextureAtlas.scale);
-						_helpMatirx.tx += subTextureData.x + pivotX;
-						_helpMatirx.ty += subTextureData.y + pivotY;
+						_helpMatirx.tx = -pivotX - subTextureData.x;
+						_helpMatirx.ty = -pivotY - subTextureData.y;
 						
-						displayShape.graphics.beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatirx, false, true);
-						displayShape.graphics.drawRect(pivotX, pivotY, subTextureData.width, subTextureData.height);
+						displayShape.graphics.beginBitmapFill(nativeTextureAtlas.bitmapData, _helpMatirx, false, fillBitmapSmooth);
+						displayShape.graphics.drawRect(-pivotX, -pivotY, subTextureData.width, subTextureData.height);
+						
 						return displayShape;
 					}
 				}
