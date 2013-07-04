@@ -53,7 +53,8 @@ package dragonBones.factorys
 		override protected function generateDisplay(textureAtlas:Object, fullName:String, pivotX:Number, pivotY:Number):Object
 		{
 			var nativeTextureAtlas:NativeTextureAtlas = textureAtlas as NativeTextureAtlas;
-			if(nativeTextureAtlas){
+			if(nativeTextureAtlas)
+			{
 				var movieClip:MovieClip = nativeTextureAtlas.movieClip;
 				if (movieClip && movieClip.totalFrames >= 3)
 				{

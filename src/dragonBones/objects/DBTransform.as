@@ -6,56 +6,6 @@ package dragonBones.objects
 	* @langversion 3.0
 	* @version 2.0
 	*/
-
-	/**
-	 * The BoneTransform class provides transformation properties and methods for Bone instances.
-	 * @example
-	 * <p>Download the example files <a href='http://dragonbones.github.com/downloads/DragonBones_Tutorial_Assets.zip'>here</a>: </p>
-	 * <p>This example gets the BoneTransform of the head bone and adjust the x and y registration by 60 pixels.</p>
-	 * <listing>	
-	 *	package  
-	 *	{
-	 *		import dragonBones.Armature;
-	 *		import dragonBones.factorys.BaseFactory;
-	 *  	import flash.display.Sprite;
-	 *		import flash.events.Event;	
-     *
-	 *		public class DragonAnimation extends Sprite 
-	 *		{		
-	 *			[Embed(source = "Dragon1.swf", mimeType = "application/octet-stream")]  
-	 *			private static const ResourcesData:Class;
-	 *			
-	 *			private var factory:BaseFactory;
-	 *			private var armature:Armature;		
-	 *			
-	 *			public function DragonAnimation() 
-	 *			{				
-	 *				factory = new BaseFactory();
-	 *				factory.addEventListener(Event.COMPLETE, handleParseData);
-	 *				factory.parseData(new ResourcesData(), 'Dragon');
-	 *			}
-	 *			
-	 *			private function handleParseData(e:Event):void 
-	 *			{			
-	 *				armature = factory.buildArmature('Dragon');
-	 *				addChild(armature.display as Sprite); 			
-	 *				armature.animation.play();
-	 * 				var bone:Bone = armature.getBone("head");
-	 * 				bone.origin.pivotX = 60;//origin BoneTransform
-	 *				bone.origin.pivotY = 60;//origin BoneTransform
-	 *				addEventListener(Event.ENTER_FRAME, updateAnimation);			
-	 *			}
-	 *			
-	 *			private function updateAnimation(e:Event):void 
-	 *			{
-	 *				armature.advanceTime(stage.frameRate / 1000);
-	 *			}		
-	 *		}
-	 *	}
-	 * </listing>
-	 * @see dragonBones.Bone
-	 * @see dragonBones.animation.Animation
-	 */
 	public class DBTransform
 	{
 		/**

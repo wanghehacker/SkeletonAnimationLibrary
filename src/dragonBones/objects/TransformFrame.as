@@ -2,28 +2,30 @@
 {
 	import flash.geom.ColorTransform;
 	import flash.geom.Point;
-
+	
+	/** @private */
 	final public class TransformFrame extends Frame
 	{
 		public var tweenEasing:Number;
 		public var tweenRotate:int;
-		public var visible:Boolean;
 		public var displayIndex:int;
+		public var visible:Boolean;
 		public var zOrder:Number;
-		public var color:ColorTransform;
 		
 		public var global:DBTransform;
 		public var transform:DBTransform;
 		public var pivot:Point;
+		public var color:ColorTransform;
+		
 		
 		public function TransformFrame()
 		{
 			super();
 			
-			visible = true;
 			tweenEasing = 0;
 			tweenRotate = 0;
 			displayIndex = 0;
+			visible = true;
 			zOrder = 0;
 			
 			global = new DBTransform();
@@ -34,8 +36,11 @@
 		override public function dispose():void
 		{
 			super.dispose();
+			global = null;
 			transform = null;
+			//SkeletonData pivots
 			pivot = null;
+			color = null;
 		}
 	}
 	

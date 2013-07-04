@@ -1,5 +1,6 @@
 package dragonBones.objects
 {
+	/** @private */
 	public final class SlotData
 	{
 		public var name:String;

@@ -595,11 +595,14 @@ package dragonBones.animation
 		
 		private function addTimelineState(timelineName:String):void
 		{
-			var timelineState:TimelineState = TimelineState.borrowObject();
 			var bone:Bone = _armature.getBone(timelineName);
-			var timeline:TransformTimeline = _clip.getTimeline(timelineName);
-			timelineState.fadeIn(bone, this, timeline);
-			_timelineStates[timelineName] = timelineState;
+			if(bone)
+			{
+				var timelineState:TimelineState = TimelineState.borrowObject();
+				var timeline:TransformTimeline = _clip.getTimeline(timelineName);
+				timelineState.fadeIn(bone, this, timeline);
+				_timelineStates[timelineName] = timelineState;
+			}
 		}
 		
 		private function removeTimelineState(timelineName:String):void

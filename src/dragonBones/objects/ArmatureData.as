@@ -2,7 +2,7 @@ package dragonBones.objects
 {
 	final public class ArmatureData
 	{
-		private static var _helpArray:Array = [];
+		private static const _helpArray:Array = [];
 		
 		public var name:String;
 		

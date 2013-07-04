@@ -1,9 +1,5 @@
 package dragonBones.objects
 {
-	import dragonBones.core.dragonBones_internal;
-	
-	use namespace dragonBones_internal;
-	
 	final public class AnimationData extends Timeline
 	{
 		public var name:String;
@@ -33,9 +29,9 @@ package dragonBones.objects
 			loop = 0;
 			tweenEasing = NaN;
 			
-			_fadeTime = 0;
-			
 			_timelines = {};
+			
+			_fadeTime = 0;
 		}
 		
 		override public function dispose():void

@@ -1,7 +1,8 @@
 ﻿package dragonBones.objects
 {
 	import flash.geom.Point;
-
+	
+	/** @private */
 	final public class DisplayData
 	{
 		public static const ARMATURE:String = "armature";

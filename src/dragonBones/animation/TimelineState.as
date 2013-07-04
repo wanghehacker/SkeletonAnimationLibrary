@@ -12,6 +12,7 @@ package dragonBones.animation
 	
 	use namespace dragonBones_internal;
 	
+	/** @private */
 	public final class TimelineState
 	{
 		private static const HALF_PI:Number = Math.PI * 0.5;

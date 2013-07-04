@@ -45,6 +45,23 @@
 			}
 		}
 		
+		override public function set visible(value:Boolean):void
+		{
+			if(this._visible != value)
+			{
+				this._visible = value;
+				var i:int = _children.length;
+				while(i --)
+				{
+					var slot:Slot = _children[i] as Slot;
+					if(slot)
+					{
+						slot.visible = this._visible;
+					}
+				}
+			}
+		}
+		
 		/** @private */
 		override dragonBones_internal function setArmature(value:Armature):void
 		{

@@ -2,6 +2,12 @@ package dragonBones.objects
 {
 	public class Timeline
 	{
+		private var _frameList:Vector.<Frame>;
+		public function get frameList():Vector.<Frame>
+		{
+			return _frameList;
+		}
+		
 		private var _duration:Number;
 		public function get duration():Number
 		{
@@ -30,18 +36,11 @@ package dragonBones.objects
 			_scale = value;
 		}
 		
-		private var _frameList:Vector.<Frame>;
-		public function get frameList():Vector.<Frame>
-		{
-			return _frameList;
-		}
-		
 		public function Timeline()
 		{
+			_frameList = new Vector.<Frame>(0, true);
 			_duration = 0;
 			_scale = 1;
-			
-			_frameList = new Vector.<Frame>(0, true);
 		}
 		
 		public function dispose():void

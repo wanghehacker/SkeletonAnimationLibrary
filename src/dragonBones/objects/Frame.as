@@ -1,5 +1,6 @@
 package dragonBones.objects
 {
+	/** @private */
 	public class Frame
 	{
 		public var position:Number;
@@ -17,7 +18,6 @@ package dragonBones.objects
 		
 		public function dispose():void
 		{
-			
 		}
 	}
 }

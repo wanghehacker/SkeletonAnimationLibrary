@@ -11,8 +11,6 @@ package dragonBones.objects
 		public var originTransform:DBTransform;
 		public var originPivot:Point;
 		
-		private var _value:Number = Math.random();
-		
 		private var _offset:Number;
 		public function get offset():Number
 		{
@@ -40,9 +38,10 @@ package dragonBones.objects
 		{
 			super();
 			
-			_offset = 0;
 			originTransform = new DBTransform();
 			originPivot = new Point();
+			
+			_offset = 0;
 		}
 		
 		override public function dispose():void

@@ -1,5 +1,6 @@
 package dragonBones.objects
 {
+	/** @private */
 	final public class SkinData
 	{
 		public var name:String;
