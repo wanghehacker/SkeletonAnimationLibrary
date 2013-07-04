@@ -17,8 +17,8 @@ package dragonBones.utils
 	/** @private */
 	public final class DBDataUtils
 	{
-		private static var _helpTransform1:DBTransform = new DBTransform();
-		private static var _helpTransform2:DBTransform = new DBTransform();
+		private static const _helpTransform1:DBTransform = new DBTransform();
+		private static const _helpTransform2:DBTransform = new DBTransform();
 		
 		public static function transformArmatureData(armatureData:ArmatureData):void
 		{

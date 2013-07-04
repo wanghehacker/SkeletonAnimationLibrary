@@ -24,9 +24,6 @@
 	{
 		private static const ANGLE_TO_RADIAN:Number = Math.PI / 180;
 		
-		private static const _helpTransform1:DBTransform = new DBTransform();
-		private static const _helpTransform2:DBTransform = new DBTransform();
-		
 		private static function checkVersion(xml:XML):void
 		{
 			var version:String = xml.@[ConstValues.A_VERSION];
