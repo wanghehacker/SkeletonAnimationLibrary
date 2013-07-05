@@ -15,9 +15,19 @@ package dragonBones.core
 	
 	public class DBObject extends EventDispatcher
 	{	
-		
+		/**
+		 * The name of this DBObject instance's Armature instance.
+		 */
 		public var name:String;
+		
+		/**
+		 * An object that can contain any user extra data.
+		 */
 		public var userData:Object;
+		
+		/**
+		 * 
+		 */
 		public var fixedRotation:Boolean;
 		
 		/** @private */
@@ -29,6 +39,10 @@ package dragonBones.core
 		
 		/** @private */
 		protected var _global:DBTransform;
+		/**
+		 * This DBObject instance global transform instance.
+		 * @see dragonBones.objects.DBTransform
+		 */
 		public function get global():DBTransform
 		{
 			return _global;
@@ -36,16 +50,24 @@ package dragonBones.core
 		
 		/** @private */
 		protected var _origin:DBTransform;
+		/**
+		 * This DBObject instance origin transform instance.
+		 * @see dragonBones.objects.DBTransform
+		 */
 		public function get origin():DBTransform
 		{
 			return _origin;
 		}
 		
 		/** @private */
-		protected var _node:DBTransform;
+		protected var _offset:DBTransform;
+		/**
+		 * This DBObject instance offset transform instance.
+		 * @see dragonBones.objects.DBTransform
+		 */
 		public function get node():DBTransform
 		{
-			return _node;
+			return _offset;
 		}
 		
 		/** @private */
@@ -64,6 +86,10 @@ package dragonBones.core
 		
 		/** @private */
 		protected var _parent:Bone;
+		
+		/**
+		 * Indicates the Bone instance that directly contains this DBObject instance if any.
+		 */
 		public function get parent():Bone
 		{
 			return _parent;
@@ -72,25 +98,13 @@ package dragonBones.core
 		dragonBones_internal function setParent(value:Bone):void
 		{
 			_parent = value;
-			if(_parent)
-			{
-				if(_parent is Armature)
-				{
-					setArmature(_parent as Armature);
-				}
-				else
-				{
-					setArmature(_parent.armature);
-				}
-			}
-			else
-			{
-				setArmature(null);
-			}
 		}
 		
 		/** @private */
 		protected var _armature:Armature;
+		/**
+		 * The armature this DBObject instance belongs to.
+		 */
 		public function get armature():Armature
 		{
 			return _armature;
@@ -115,7 +129,7 @@ package dragonBones.core
 			
 			_global = new DBTransform();
 			_origin = new DBTransform();
-			_node = new DBTransform();
+			_offset = new DBTransform();
 			_tween = new DBTransform();
 			_tween.scaleX = _tween.scaleY = 0;
 			
@@ -124,6 +138,9 @@ package dragonBones.core
 			_visible = true;
 		}
 		
+		/**
+		 * Cleans up any resources used by this DBObject instance.
+		 */
 		public function dispose():void
 		{
 			userData = null;
@@ -131,7 +148,7 @@ package dragonBones.core
 			_armature = null;
 			_global = null;
 			_origin = null;
-			_node = null;
+			_offset = null;
 			_tween = null;
 			_globalTransformMatrix = null;
 		}
@@ -139,13 +156,13 @@ package dragonBones.core
 		/** @private */
 		dragonBones_internal function update():void
 		{
-			_global.scaleX = (_origin.scaleX + _tween.scaleX) * _node.scaleX;
-			_global.scaleY = (_origin.scaleY + _tween.scaleY) * _node.scaleY;
+			_global.scaleX = (_origin.scaleX + _tween.scaleX) * _offset.scaleX;
+			_global.scaleY = (_origin.scaleY + _tween.scaleY) * _offset.scaleY;
 			
-			if(_parent != _armature)
+			if(_parent)
 			{
-				var x:Number = _origin.x + _node.x + _tween.x;
-				var y:Number = _origin.y + _node.y + _tween.y;
+				var x:Number = _origin.x + _offset.x + _tween.x;
+				var y:Number = _origin.y + _offset.y + _tween.y;
 				var parentMatrix:Matrix = _parent._globalTransformMatrix;
 				
 				_globalTransformMatrix.tx = _global.x = parentMatrix.a * x + parentMatrix.c * y + parentMatrix.tx;
@@ -153,13 +170,13 @@ package dragonBones.core
 				
 				if(fixedRotation)
 				{
-					_global.skewX = _origin.skewX + _node.skewX + _tween.skewX;
-					_global.skewY = _origin.skewY + _node.skewY + _tween.skewY;
+					_global.skewX = _origin.skewX + _offset.skewX + _tween.skewX;
+					_global.skewY = _origin.skewY + _offset.skewY + _tween.skewY;
 				}
 				else
 				{
-					_global.skewX = _origin.skewX + _node.skewX + _tween.skewX + _parent._global.skewX;
-					_global.skewY = _origin.skewY + _node.skewY + _tween.skewY + _parent._global.skewY;
+					_global.skewX = _origin.skewX + _offset.skewX + _tween.skewX + _parent._global.skewX;
+					_global.skewY = _origin.skewY + _offset.skewY + _tween.skewY + _parent._global.skewY;
 				}
 				
 				if(_parent.scaleMode >= _scaleType)
@@ -170,38 +187,17 @@ package dragonBones.core
 			}
 			else
 			{
-				_globalTransformMatrix.tx = _global.x = _origin.x + _node.x + _tween.x;
-				_globalTransformMatrix.ty = _global.y = _origin.y + _node.y + _tween.y;
+				_globalTransformMatrix.tx = _global.x = _origin.x + _offset.x + _tween.x;
+				_globalTransformMatrix.ty = _global.y = _origin.y + _offset.y + _tween.y;
 				
-				_global.skewX = _origin.skewX + _node.skewX + _tween.skewX;
-				_global.skewY = _origin.skewY + _node.skewY + _tween.skewY;
+				_global.skewX = _origin.skewX + _offset.skewX + _tween.skewX;
+				_global.skewY = _origin.skewY + _offset.skewY + _tween.skewY;
 			}
 			
 			_globalTransformMatrix.a = _global.scaleX * Math.cos(_global.skewY);
 			_globalTransformMatrix.b = _global.scaleX * Math.sin(_global.skewY);
 			_globalTransformMatrix.c = -_global.scaleY * Math.sin(_global.skewX);
 			_globalTransformMatrix.d = _global.scaleY * Math.cos(_global.skewX);
-		}
-		
-		/** @private */
-		dragonBones_internal function updateColor(
-			aOffset:Number,
-			rOffset:Number,
-			gOffset:Number,
-			bOffset:Number,
-			aMultiplier:Number,
-			rMultiplier:Number,
-			gMultiplier:Number,
-			bMultiplier:Number,
-			isColorChanged:Boolean
-		):void
-		{
-			 
-		}
-			
-		/** @private */
-		dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
-		{
 		}
 	}
 }

@@ -13,9 +13,15 @@
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.Frame;
 	
+	import flash.events.EventDispatcher;
 	import flash.geom.ColorTransform;
 	
 	use namespace dragonBones_internal;
+	
+	/**
+	 * Dispatched when a bone of the armature enters a frame.
+	 */
+	[Event(name="zOrderUpdated", type="dragonBones.events.ArmatureEvent")]
 	/**
 	 * Dispatched when an animation state of the animation begins fade in.
 	 */
@@ -61,10 +67,20 @@
 	 */
 	[Event(name="boneFrameEvent", type="dragonBones.events.FrameEvent")]
 
-	public class Armature extends Bone implements IAnimatable
+	public class Armature extends EventDispatcher implements IAnimatable
 	{
-		private static var _soundManager:SoundEventManager = SoundEventManager.getInstance();
-		private static var _helpArray:Array = [];
+		private static const _soundManager:SoundEventManager = SoundEventManager.getInstance();
+		private static const _helpArray:Array = [];
+		
+		/**
+		 * The name of this DBObject instance's Armature instance.
+		 */
+		public var name:String;
+		
+		/**
+		 * An object that can contain any user extra data.
+		 */
+		public var userData:Object;
 		
 		/** @private */
 		dragonBones_internal var _slotsZOrderChanged:Boolean;
@@ -78,7 +94,7 @@
 		/**
 		 * Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
 		 */
-		override public function get display():Object
+		public function get display():Object
 		{
 			return _display;
 		}
@@ -100,7 +116,7 @@
 		 */
 		public function Armature(display:Object)
 		{
-			super();
+			super(this);
 			_display = display;
 			
 			_animation = new Animation(this);
@@ -113,11 +129,11 @@
 		}
 		
 		/**
-		 * Cleans up resources used by this Armature instance.
+		 * Cleans up any resources used by this DBObject instance.
 		 */
-		override public function dispose():void
+		public function dispose():void
 		{
-			super.dispose();
+			userData = null;
 			
 			_animation.dispose();
 			_slotList.fixed = false;
@@ -133,7 +149,7 @@
 		}
 		
 		/** @private */
-		override dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
+		dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
 		{
 			if(frame.event && this.hasEventListener(FrameEvent.ANIMATION_FRAME_EVENT))
 			{
@@ -173,9 +189,10 @@
 			}
 			
 			i = _slotList.length;
+			var slot:Slot;
 			while(i --)
 			{
-				var slot:Slot = _slotList[i];
+				slot = _slotList[i];
 				slot.update();
 				if(slot._isDisplayOnStage)
 				{
@@ -189,20 +206,42 @@
 			
 			if(_slotsZOrderChanged)
 			{
-				sortSlotsZOrder();
+				updateSlotsZOrder();
+				
+				if(this.hasEventListener(ArmatureEvent.Z_ORDER_UPDATED))
+				{
+					this.dispatchEvent(new ArmatureEvent(ArmatureEvent.Z_ORDER_UPDATED));
+				}
 			}
 		}
 		
+		
+		/**
+		 * Get all Slot instance associated with this armature.
+		 * @return A Vector.&lt;Slot&gt; instance.
+		 * @see dragonBones.Slot
+		 */
 		public function getSlots(returnCopy:Boolean = true):Vector.<Slot>
 		{
 			return returnCopy?_slotList.concat():_slotList;
 		}
 		
+		/**
+		 * Get all Bone instance associated with this armature.
+		 * @return A Vector.&lt;Bone&gt; instance.
+		 * @see dragonBones.Bone
+		 */
 		public function getBones(returnCopy:Boolean = true):Vector.<Bone>
 		{
 			return returnCopy?_boneList.concat():_boneList;
 		}
 		
+		/**
+		 * Retrieves a Slot by name
+		 * @param	The name of the Bone to retrieve.
+		 * @return A Slot instance or null if no Slot with that name exist.
+		 * @see dragonBones.Slot
+		 */
 		public function getSlot(slotName:String):Slot
 		{
 			var i:int = _slotList.length;
@@ -216,6 +255,12 @@
 			return null;
 		}
 		
+		/**
+		 * Gets the Slot associated with this DisplayObject.
+		 * @param	Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
+		 * @return A Slot instance.
+		 * @see dragonBones.Slot
+		 */
 		public function getSlotByDisplay(display:Object):Slot
 		{
 			var i:int = _slotList.length;
@@ -229,6 +274,11 @@
 			return null;
 		}
 		
+		/**
+		 * Remove a Slot instance from this Armature instance.
+		 * @param	The Slot instance to remove.
+		 * @see dragonBones.Slot
+		 */
 		public function removeSlot(slot:Slot):void
 		{
 			if(!slot)
@@ -246,6 +296,31 @@
 			}
 		}
 		
+		/**
+		 * Remove a Slot instance from this Armature instance.
+		 * @param	The name of the Slot instance to remove.
+		 * @see dragonBones.Slot
+		 */
+		public function removeSlotByName(slotName:String):void
+		{
+			if(!slotName)
+			{
+				return;
+			}
+			
+			var slot:Slot = getSlot(slotName);
+			if(slot)
+			{
+				removeSlot(slot);
+			}
+		}
+		
+		/**
+		 * Retrieves a Bone by name
+		 * @param	The name of the Bone to retrieve.
+		 * @return A Bone instance or null if no Bone with that name exist.
+		 * @see dragonBones.Bone
+		 */
 		public function getBone(boneName:String):Bone
 		{
 			var i:int = _boneList.length;
@@ -259,6 +334,12 @@
 			return null;
 		}
 		
+		/**
+		 * Gets the Bone associated with this DisplayObject.
+		 * @param	Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
+		 * @return A Bone instance.
+		 * @see dragonBones.Bone
+		 */
 		public function getBoneByDisplay(display:Object):Bone
 		{
 			var slot:Slot = getSlotByDisplay(display);
@@ -267,8 +348,8 @@
 		
 		/**
 		 * Remove a Bone instance from this Armature instance.
-		 * @param	The name of the Bone instance to remove.
-		 * @see dragonBones.Bone
+		 * @param	The Bone instance to remove.
+		 * @see	dragonBones.Bone
 		 */
 		public function removeBone(bone:Bone):void
 		{
@@ -287,7 +368,33 @@
 			}
 		}
 		
-		public function addChildTo(object:DBObject, parentName:String = null):void
+		/**
+		 * Remove a Bone instance from this Armature instance.
+		 * @param	The name of the Bone instance to remove.
+		 * @see dragonBones.Bone
+		 */
+		public function removeBoneByName(boneName:String):void
+		{
+			if(!boneName)
+			{
+				return;
+			}
+			
+			var bone:Bone = getBone(boneName);
+			if(bone)
+			{
+				removeBone(bone);
+			}
+		}
+		
+		
+		/**
+		 * Add a DBObject instance to this Armature instance.
+		 * @param	A DBObject instance
+		 * @param	(optional) The parent's name of this DBObject instance.
+		 * @see dragonBones.core.DBObject
+		 */
+		public function addChild(object:DBObject, parentName:String = null):void
 		{
 			if(!object)
 			{
@@ -308,29 +415,44 @@
 			}
 			else
 			{
-				this.addChild(object);
+				if(object.parent)
+				{
+					object.parent.removeChild(object);
+				}
+				object.setArmature(this);
 			}
 		}
 		
+		/**
+		 * Add a Bone instance to this Armature instance.
+		 * @param	A Bone instance
+		 * @param	(optional) The parent's name of this Bone instance.
+		 * @see dragonBones.Bone
+		 */
 		public function addBone(bone:Bone, parentName:String = null):void
 		{
-			addChildTo(bone, parentName);
+			addChild(bone, parentName);
 		}
 		
-		public function sortSlotsZOrder():void
+		/**
+		 * Update the z-order of the display. 
+		 */
+		public function updateSlotsZOrder():void
 		{
 			_slotList.fixed = false;
 			_slotList.sort(sortSlot);
 			_slotList.fixed = true;
 			var i:int = _slotList.length;
+			var slot:Slot;
 			while(i --)
 			{
-				var slot:Slot = _slotList[i];
+				slot = _slotList[i];
 				if(slot._isDisplayOnStage)
 				{
 					slot._displayBridge.addDisplay(display);
 				}
 			}
+			
 			_slotsZOrderChanged = false;
 		}
 		
@@ -396,11 +518,14 @@
 				return;
 			}
 			_helpArray.length = 0;
+			var level:int;
+			var bone:Bone;
+			var boneParent:Bone;
 			while(i --)
 			{
-				var level:int = 0;
-				var bone:Bone = _boneList[i];
-				var boneParent:Bone = bone;
+				level = 0;
+				bone = _boneList[i];
+				boneParent = bone;
 				while(boneParent)
 				{
 					level ++;

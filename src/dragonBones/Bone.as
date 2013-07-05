@@ -23,16 +23,25 @@
 		private var _children:Vector.<DBObject>;
 		
 		private var _slot:Slot;
+		/**
+		 * The default Slot of this Bone instance.
+		 */
 		public function get slot():Slot
 		{
 			return _slot;
 		}
 		
+		/**
+		 * The sub-armature of default Slot of this Bone instance.
+		 */
 		public function get childArmature():Armature
 		{
 			return _slot?_slot.childArmature:null; 
 		}
 		
+		/**
+		 * The DisplayObject of default Slot of this Bone instance.
+		 */
 		public function get display():Object
 		{
 			return _slot?_slot.display:null;
@@ -56,7 +65,7 @@
 					var slot:Slot = _children[i] as Slot;
 					if(slot)
 					{
-						slot.visible = this._visible;
+						slot.updateVisible(this._visible);
 					}
 				}
 			}
@@ -115,87 +124,6 @@
 			}
 		}
 		
-		/** @private */
-		override dragonBones_internal function updateColor(
-			aOffset:Number, 
-			rOffset:Number, 
-			gOffset:Number, 
-			bOffset:Number, 
-			aMultiplier:Number, 
-			rMultiplier:Number, 
-			gMultiplier:Number, 
-			bMultiplier:Number,
-			isColorChanged:Boolean
-		):void
-		{
-			if(isColorChanged || _isColorChanged)
-			{
-				_slot._displayBridge.updateColor(
-					aOffset, 
-					rOffset, 
-					gOffset, 
-					bOffset, 
-					aMultiplier, 
-					rMultiplier, 
-					gMultiplier, 
-					bMultiplier
-				);
-			}
-			_isColorChanged = isColorChanged;
-		}
-		
-		/** @private */
-		override dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
-		{
-			if(frame)
-			{
-				var mixingType:int = animationState.getMixingTransform(name);
-				if(animationState.displayControl && (mixingType == 2 || mixingType == -1))
-				{
-					var tansformFrame:TransformFrame = frame as TransformFrame;
-					if(_slot)
-					{
-						var displayIndex:int = tansformFrame.displayIndex;
-						if(displayIndex >= 0)
-						{
-							if(tansformFrame.zOrder != _slot._tweenZorder)
-							{
-								_slot._tweenZorder = tansformFrame.zOrder;
-								this._armature._slotsZOrderChanged = true;
-							}
-						}
-						_slot.changeDisplay(displayIndex);
-						_slot.visible = tansformFrame.visible;
-					}
-				}
-				
-				if(frame.event && this._armature.hasEventListener(FrameEvent.OBJECT_FRAME_EVENT))
-				{
-					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.OBJECT_FRAME_EVENT);
-					frameEvent.object = this;
-					frameEvent.animationState = animationState;
-					frameEvent.frameLabel = frame.event;
-					this._armature.dispatchEvent(frameEvent);
-				}
-				
-				if(frame.action)
-				{
-					var childArmature:Armature = this.childArmature;
-					if(childArmature)
-					{
-						childArmature.animation.gotoAndPlay(frame.action);
-					}
-				}
-			}
-			else
-			{
-				if(_slot)
-				{
-					_slot.changeDisplay(-1);
-				}
-			}
-		}
-		
 		public function contains(child:DBObject):Boolean
 		{
 			if(!child)
@@ -235,6 +163,7 @@
 			_children[_children.length] = child;
 			_children.fixed = true;
 			child.setParent(this);
+			child.setArmature(this._armature);
 			
 			if(!_slot && child is Slot)
 			{
@@ -256,16 +185,103 @@
 				_children.splice(index, 1);
 				_children.fixed = true;
 				child.setParent(null);
+				child.setArmature(null);
 				
 				if(_slot && child == _slot)
 				{
 					_slot = null;
+				}
+				
+				if(this._armature)
+				{
+					this._armature.removeDBObject(child);
 				}
 			}
 			else
 			{
 				throw new ArgumentError();
 			}
+		}
+		
+		/** @private */
+		dragonBones_internal function arriveAtFrame(frame:Frame, timelineState:TimelineState, animationState:AnimationState, isCross:Boolean):void
+		{
+			if(frame)
+			{
+				var mixingType:int = animationState.getMixingTransform(name);
+				if(animationState.displayControl && (mixingType == 2 || mixingType == -1))
+				{
+					var tansformFrame:TransformFrame = frame as TransformFrame;
+					if(_slot)
+					{
+						var displayIndex:int = tansformFrame.displayIndex;
+						if(displayIndex >= 0)
+						{
+							if(tansformFrame.zOrder != _slot._tweenZorder)
+							{
+								_slot._tweenZorder = tansformFrame.zOrder;
+								this._armature._slotsZOrderChanged = true;
+							}
+						}
+						_slot.changeDisplay(displayIndex);
+						_slot.updateVisible(tansformFrame.visible);
+					}
+				}
+				
+				if(frame.event && this._armature.hasEventListener(FrameEvent.BONE_FRAME_EVENT))
+				{
+					var frameEvent:FrameEvent = new FrameEvent(FrameEvent.BONE_FRAME_EVENT);
+					frameEvent.bone = this;
+					frameEvent.animationState = animationState;
+					frameEvent.frameLabel = frame.event;
+					this._armature.dispatchEvent(frameEvent);
+				}
+				
+				if(frame.action)
+				{
+					var childArmature:Armature = this.childArmature;
+					if(childArmature)
+					{
+						childArmature.animation.gotoAndPlay(frame.action);
+					}
+				}
+			}
+			else
+			{
+				if(_slot)
+				{
+					_slot.changeDisplay(-1);
+				}
+			}
+		}
+		
+		/** @private */
+		dragonBones_internal function updateColor(
+			aOffset:Number, 
+			rOffset:Number, 
+			gOffset:Number, 
+			bOffset:Number, 
+			aMultiplier:Number, 
+			rMultiplier:Number, 
+			gMultiplier:Number, 
+			bMultiplier:Number,
+			isColorChanged:Boolean
+		):void
+		{
+			if(isColorChanged || _isColorChanged)
+			{
+				_slot._displayBridge.updateColor(
+					aOffset, 
+					rOffset, 
+					gOffset, 
+					bOffset, 
+					aMultiplier, 
+					rMultiplier, 
+					gMultiplier, 
+					bMultiplier
+				);
+			}
+			_isColorChanged = isColorChanged;
 		}
 	}
 }

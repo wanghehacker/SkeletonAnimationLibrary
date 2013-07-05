@@ -1,6 +1,6 @@
 package dragonBones.animation
 {
-	import dragonBones.core.DBObject;
+	import dragonBones.Bone;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.objects.TransformFrame;
@@ -77,7 +77,7 @@ package dragonBones.animation
 		public var update:Function;
 		
 		private var _animationState:AnimationState;
-		private var _object:DBObject;
+		private var _bone:Bone;
 		private var _timeline:TransformTimeline;
 		private var _currentFrame:TransformFrame;
 		private var _currentFramePosition:Number;
@@ -104,9 +104,9 @@ package dragonBones.animation
 			_durationColor = new ColorTransform();
 		}
 		
-		public function fadeIn(object:DBObject, animationState:AnimationState, timeline:TransformTimeline):void
+		public function fadeIn(bone:Bone, animationState:AnimationState, timeline:TransformTimeline):void
 		{
-			_object = object;
+			_bone = bone;
 			_animationState = animationState;
 			_timeline = timeline;
 			
@@ -154,7 +154,7 @@ package dragonBones.animation
 			switch(_timeline.frameList.length)
 			{
 				case 0:
-					_object.arriveAtFrame(null, this, _animationState, false);
+					_bone.arriveAtFrame(null, this, _animationState, false);
 					update = updateNothing;
 					break;
 				case 1:
@@ -203,7 +203,7 @@ package dragonBones.animation
 			
 			if(_currentFrame.color)
 			{
-				_object.updateColor(
+				_bone.updateColor(
 					_currentFrame.color.alphaOffset, 
 					_currentFrame.color.redOffset, 
 					_currentFrame.color.greenOffset, 
@@ -217,11 +217,11 @@ package dragonBones.animation
 			}
 			else
 			{
-				_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
+				_bone.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
 			}
 			
 			
-			_object.arriveAtFrame(_currentFrame, this, _animationState, false);
+			_bone.arriveAtFrame(_currentFrame, this, _animationState, false);
 		}
 		
 		private function updateList(progress:Number):void
@@ -244,7 +244,7 @@ package dragonBones.animation
 			{
 				if(isArrivedFrame)
 				{
-					_object.arriveAtFrame(_currentFrame, this, _animationState, true);
+					_bone.arriveAtFrame(_currentFrame, this, _animationState, true);
 				}
 				var isArrivedFrame:Boolean = true;
 				if(_currentFrame)
@@ -427,7 +427,7 @@ package dragonBones.animation
 				{
 					if(_currentFrame.color)
 					{
-						_object.updateColor(
+						_bone.updateColor(
 							_currentFrame.color.alphaOffset, 
 							_currentFrame.color.redOffset, 
 							_currentFrame.color.greenOffset, 
@@ -439,12 +439,12 @@ package dragonBones.animation
 							true
 						);
 					}
-					else if(_object._isColorChanged)
+					else if(_bone._isColorChanged)
 					{
-						_object.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
+						_bone.updateColor(0, 0, 0, 0, 1, 1, 1, 1, false);
 					}
 				}
-				_object.arriveAtFrame(_currentFrame, this, _animationState, false);
+				_bone.arriveAtFrame(_currentFrame, this, _animationState, false);
 			}
 			
 			if (_tweenTransform)
@@ -486,7 +486,7 @@ package dragonBones.animation
 			{
 				if(_currentFrame.color)
 				{
-					_object.updateColor(
+					_bone.updateColor(
 						_currentFrame.color.alphaOffset + _durationColor.alphaOffset * progress,
 						_currentFrame.color.redOffset + _durationColor.redOffset * progress,
 						_currentFrame.color.greenOffset + _durationColor.greenOffset * progress,
@@ -500,7 +500,7 @@ package dragonBones.animation
 				}
 				else
 				{
-					_object.updateColor(
+					_bone.updateColor(
 						_durationColor.alphaOffset * progress,
 						_durationColor.redOffset * progress,
 						_durationColor.greenOffset * progress,
@@ -519,7 +519,7 @@ package dragonBones.animation
 		{
 			update = updateNothing;
 			
-			_object = null;
+			_bone = null;
 			_animationState = null;
 			_timeline = null;
 			_currentFrame = null;

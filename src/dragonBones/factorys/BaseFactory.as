@@ -68,7 +68,7 @@ package dragonBones.factorys
 		 * import flash.events.Event; 
 		 * import dragonBones.factorys.BaseFactory;
 		 * 
-		 * [Embed(source = "../assets/Dragon1.swf", mimeType = "application/octet-stream")]  
+		 * [Embed(source = "../assets/Dragon1.swf", mimeType = "application/octet-stream")]
 		 *	private static const ResourcesData:Class;
 		 * var factory:BaseFactory = new BaseFactory(); 
 		 * factory.addEventListener(Event.COMPLETE, textureCompleteHandler);

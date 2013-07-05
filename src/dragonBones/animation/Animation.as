@@ -27,7 +27,7 @@
 	 *	package  
 	 *	{
 	 *		import dragonBones.Armature;
-	 *		import dragonBones.factorys.BaseFactory;
+	 *		import dragonBones.factorys.NativeFactory;
 	 *  	import flash.display.Sprite;
 	 *		import flash.events.Event;	
 	 *
@@ -36,12 +36,12 @@
 	 *			[Embed(source = "Dragon1.swf", mimeType = "application/octet-stream")]  
 	 *			private static const ResourcesData:Class;
 	 *			
-	 *			private var factory:BaseFactory;
+	 *			private var factory:NativeFactory;
 	 *			private var armature:Armature;		
 	 *			
 	 *			public function DragonAnimation() 
 	 *			{				
-	 *				factory = new BaseFactory();
+	 *				factory = new NativeFactory();
 	 *				factory.addEventListener(Event.COMPLETE, handleParseData);
 	 *				factory.parseData(new ResourcesData(), 'Dragon');
 	 *			}
@@ -61,16 +61,20 @@
 	 *		}
 	 *	}
 	 * </listing>
-	 * @see dragonBones.Bone
 	 * @see dragonBones.Armature
+	 * @see dragonBones.animation.Animation
+	 * @see dragonBones.animation.AnimationState
 	 */
-	final public class Animation
+	public class Animation
 	{
-		//public static var defaultTweenEnabled:Boolean = true;
-		
 		public static const FADE_OUT_NONE:String = "fadeOutNone";
 		public static const FADE_OUT_SAME_LAYER:String = "fadeOutSameLayer";
 		public static const FADE_OUT_ALL_LAYER:String = "fadeOutAllLayer";
+		
+		/**
+		 * Whether animation tweening is enabled or not.
+		 */
+		public var tweenEnabled:Boolean;
 		
 		/** @private */
 		dragonBones_internal var _animationLayer:Vector.<Vector.<AnimationState>>;
@@ -78,23 +82,39 @@
 		private var _armature:Armature;
 		private var _isPlaying:Boolean;
 		
+		/**
+		 * An vector containing all AnimationData names the Animation can play.
+		 * @see dragonBones.objects.AnimationData.
+		 */
 		public function get movementList():Vector.<String>
 		{
 			return _animationList;
 		}
 		
+		/**
+		 * The name of the last AnimationData played.
+		 * @see dragonBones.objects.AnimationData.
+		 */
 		public function get movementID():String
 		{
 			return _lastAnimationState?_lastAnimationState.name:null;
 		}
 		
 		dragonBones_internal var _lastAnimationState:AnimationState;
+		/**
+		 * The last AnimationData this Animation played.
+		 * @see dragonBones.objects.AnimationData.
+		 */
 		public function get lastAnimationState():AnimationState
 		{
 			return _lastAnimationState;
 		}
 		
 		private var _animationList:Vector.<String>;
+		/**
+		 * An vector containing all AnimationData names the Animation can play.
+		 * @see dragonBones.objects.AnimationData.
+		 */
 		public function get animationList():Vector.<String>
 		{
 			return _animationList;
@@ -132,6 +152,10 @@
 		}
 		
 		private var _animationDataList:Vector.<AnimationData>;
+		/**
+		 * The AnimationData list associated with this Animation instance.
+		 * @see dragonBones.objects.AnimationData.
+		 */
 		public function get animationDataList():Vector.<AnimationData>
 		{
 			return _animationDataList;
@@ -147,6 +171,9 @@
 		}
 		
 		private var _timeScale:Number = 1;
+		/**
+		 * The amount by which passed time should be scaled. Used to slow down or speed up animations. Defaults to 1.
+		 */
 		public function get timeScale():Number
 		{
 			return _timeScale;
@@ -161,7 +188,7 @@
 		}
 		
 		/**
-		 * Creates a new Animation instance and attaches it to the passed Arnature.
+		 * Creates a new Animation instance and attaches it to the passed Armature.
 		 * @param	An Armature to attach this Animation instance to.
 		 */
 		public function Animation(armature:Armature)
@@ -169,6 +196,8 @@
 			_armature = armature;
 			_animationLayer = new Vector.<Vector.<AnimationState>>;
 			_animationList = new Vector.<String>;
+			
+			tweenEnabled = true;
 		}
 		
 		/**
@@ -316,6 +345,7 @@
 			
 			_lastAnimationState = AnimationState.borrowObject();
 			_lastAnimationState.group = group;
+			_lastAnimationState.tweenEnabled = tweenEnabled;
 			_lastAnimationState.fadeIn(_armature, animationData, fadeInTime, 1 / durationScale, loop, layer, displayControl, pauseFadeIn);
 			
 			addState(_lastAnimationState);
@@ -345,14 +375,16 @@
 			}
 		}
 		
-		/**
-		 * Stop the playhead.
-		 */
 		public function stop():void
 		{
 			_isPlaying = false;
 		}
 		
+		/**
+		 * Returns the AnimationState named name.
+		 * @return A AnimationState instance.
+		 * @see dragonBones.animation.AnimationState.
+		 */
 		public function getState(name:String, layer:uint = 0):AnimationState
 		{
 			var l:int = _animationLayer.length;

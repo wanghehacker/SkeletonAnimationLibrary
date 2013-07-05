@@ -7,6 +7,7 @@ package dragonBones.events
 	* @version 2.0
 	*/
 	import dragonBones.Armature;
+	import dragonBones.Bone;
 	import dragonBones.animation.AnimationState;
 	import dragonBones.core.DBObject;
 	
@@ -25,11 +26,6 @@ package dragonBones.events
 			return  ANIMATION_FRAME_EVENT;
 		}
 		
-		public static function get BONE_FRAME_EVENT():String
-		{
-			return  OBJECT_FRAME_EVENT;
-		}
-		
 		/**
 		 * Dispatched when the animation of the armatrue enter a frame.
 		 */
@@ -38,14 +34,14 @@ package dragonBones.events
 		/**
 		 * 
 		 */
-		public static const OBJECT_FRAME_EVENT:String ="objectFrameEvent";
+		public static const BONE_FRAME_EVENT:String ="boneFrameEvent";
 		
 		/**
 		 * The entered frame label.
 		 */
 		public var frameLabel:String;
 		
-		public var object:DBObject;
+		public var bone:Bone;
 		
 		/**
 		 * The armature that is the target of this event.
@@ -79,7 +75,7 @@ package dragonBones.events
 		{
 			var event:FrameEvent = new FrameEvent(type, cancelable);
 			event.animationState = animationState;
-			event.object = object;
+			event.bone = bone;
 			event.frameLabel = frameLabel;
 			return event;
 		}

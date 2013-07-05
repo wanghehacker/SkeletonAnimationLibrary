@@ -21,8 +21,8 @@ package dragonBones
 		dragonBones_internal var _isDisplayOnStage:Boolean;
 		
 		private var _isHideDisplay:Boolean;
-		
 		private var _offsetZOrder:Number;
+		private var _displayIndex:int;
 		
 		public function get zOrder():Number
 		{
@@ -41,8 +41,9 @@ package dragonBones
 			}
 		}
 		
-		private var _displayIndex:int;
-		
+		/**
+		 * The DisplayObject belonging to this Bone instance. Instance type of this object varies from flash.display.DisplayObject to startling.display.DisplayObject and subclasses.
+		 */
 		public function get display():Object
 		{
 			var display:Object = _displayList[_displayIndex];
@@ -62,6 +63,9 @@ package dragonBones
 			}
 		}
 		
+		/**
+		 * The sub-armature of this Slot instance.
+		 */
 		public function get childArmature():Armature
 		{
 			return _displayList[_displayIndex] as Armature;
@@ -76,6 +80,9 @@ package dragonBones
 		}
 		
 		private var _displayList:Array;
+		/**
+		 * The DisplayObject list belonging to this Slot instance.
+		 */
 		public function get displayList():Array
 		{
 			return _displayList;
@@ -173,7 +180,8 @@ package dragonBones
 		{
 			if(value != this._visible)
 			{
-				_displayBridge.visible = this._visible = value;
+				this._visible = value;
+				updateVisible(this._visible);
 			}
 		}
 		
@@ -229,6 +237,11 @@ package dragonBones
 			{
 				_displayBridge.updateTransform(this._globalTransformMatrix, this._global);
 			}
+		}
+		
+		dragonBones_internal function updateVisible(value:Boolean):void
+		{
+			_displayBridge.visible = this._parent.visible && this._visible && value;
 		}
 	}
 }
