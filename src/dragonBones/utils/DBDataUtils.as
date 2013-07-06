@@ -140,6 +140,49 @@ package dragonBones.utils
 					frame.transform.scaleX -= originTransform.scaleX;
 					frame.transform.scaleY -= originTransform.scaleY;
 					
+					if(prevFrame)
+					{
+						var dLX:Number = frame.transform.skewX - prevFrame.transform.skewX;
+						
+						if(frame.tweenRotate)
+						{
+							
+							if(frame.tweenRotate > 0)
+							{
+								if(dLX < 0)
+								{
+									frame.transform.skewX += Math.PI * 2;
+									frame.transform.skewY += Math.PI * 2;
+								}
+								
+								if(frame.tweenRotate > 1)
+								{
+									frame.transform.skewX += Math.PI * 2 * (frame.tweenRotate - 1);
+									frame.transform.skewY += Math.PI * 2 * (frame.tweenRotate - 1);
+								}
+							}
+							else
+							{
+								if(dLX > 0)
+								{
+									frame.transform.skewX -= Math.PI * 2;
+									frame.transform.skewY -= Math.PI * 2;
+								}
+								
+								if(frame.tweenRotate < 1)
+								{
+									frame.transform.skewX += Math.PI * 2 * (frame.tweenRotate + 1);
+									frame.transform.skewY += Math.PI * 2 * (frame.tweenRotate + 1);
+								}
+							}
+						}
+						else
+						{
+							frame.transform.skewX = prevFrame.transform.skewX + TransformUtils.formatRadian(frame.transform.skewX - prevFrame.transform.skewY);
+							frame.transform.skewY = prevFrame.transform.skewY + TransformUtils.formatRadian(frame.transform.skewY - prevFrame.transform.skewY);
+						}
+					}
+					
 					if(!timeline.transformed)
 					{
 						frame.pivot.x -= originPivot.x;

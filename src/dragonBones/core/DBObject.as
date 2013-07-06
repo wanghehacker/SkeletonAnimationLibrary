@@ -65,6 +65,10 @@ package dragonBones.core
 		 * This DBObject instance offset transform instance.
 		 * @see dragonBones.objects.DBTransform
 		 */
+		public function get offset():DBTransform
+		{
+			return _offset;
+		}
 		public function get node():DBTransform
 		{
 			return _offset;

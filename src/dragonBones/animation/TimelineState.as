@@ -239,27 +239,28 @@ package dragonBones.animation
 			progress -= loopCount;
 			
 			//
+			var isArrivedFrame:Boolean = false;
 			var playedTime:Number = _totalTime * progress;
+			var frameIndex:int;
 			while (!_currentFrame || playedTime > _currentFramePosition + _currentFrameDuration || playedTime < _currentFramePosition)
 			{
 				if(isArrivedFrame)
 				{
 					_bone.arriveAtFrame(_currentFrame, this, _animationState, true);
 				}
-				var isArrivedFrame:Boolean = true;
+				isArrivedFrame = true;
 				if(_currentFrame)
 				{
-					var index:int = _timeline.frameList.indexOf(_currentFrame);
-					index ++;
-					if(index >= _timeline.frameList.length)
+					frameIndex = _timeline.frameList.indexOf(_currentFrame) + 1;
+					if(frameIndex >= _timeline.frameList.length)
 					{
-						index = 0;
+						frameIndex = 0;
 					}
-					_currentFrame = _timeline.frameList[index] as TransformFrame;
+					_currentFrame = _timeline.frameList[frameIndex] as TransformFrame;
 				}
 				else
 				{
-					index = 0;
+					frameIndex = 0;
 					_currentFrame = _timeline.frameList[0] as TransformFrame;
 				}
 				_currentFrameDuration = _currentFrame.duration;
@@ -268,14 +269,14 @@ package dragonBones.animation
 			
 			if(isArrivedFrame)
 			{
-				index ++;
-				if(index >= _timeline.frameList.length)
+				frameIndex ++;
+				if(frameIndex >= _timeline.frameList.length)
 				{
-					index = 0;
+					frameIndex = 0;
 				}
-				var nextFrame:TransformFrame = _timeline.frameList[index] as TransformFrame;
+				var nextFrame:TransformFrame = _timeline.frameList[frameIndex] as TransformFrame;
 				
-				if(index == 0 && _animationState.loop && _animationState.loopCount >= Math.abs(_animationState.loop) - 1 && ((_currentFramePosition + _currentFrameDuration) / _totalTime + loopCount - _timeline.offset) * _timeline.scale > 0.999999)// >= 1
+				if(frameIndex == 0 && _animationState.loop && _animationState.loopCount >= Math.abs(_animationState.loop) - 1 && ((_currentFramePosition + _currentFrameDuration) / _totalTime + loopCount - _timeline.offset) * _timeline.scale > 0.999999)// >= 1
 				{
 					update = updateNothing;
 					_tweenEasing = NaN;
@@ -302,16 +303,18 @@ package dragonBones.animation
 				{
 					_durationTransform.x = nextFrame.transform.x - _currentFrame.transform.x;
 					_durationTransform.y = nextFrame.transform.y - _currentFrame.transform.y;
-					_durationTransform.skewX = TransformUtils.formatRadian(nextFrame.transform.skewX - _currentFrame.transform.skewX);
-					_durationTransform.skewY = TransformUtils.formatRadian(nextFrame.transform.skewY - _currentFrame.transform.skewY);
+					_durationTransform.skewX = nextFrame.transform.skewX - _currentFrame.transform.skewX;
+					_durationTransform.skewY = nextFrame.transform.skewY - _currentFrame.transform.skewY;
 					_durationTransform.scaleX = nextFrame.transform.scaleX - _currentFrame.transform.scaleX;
 					_durationTransform.scaleY = nextFrame.transform.scaleY - _currentFrame.transform.scaleY;
 					
+					/*
 					if (nextFrame.tweenRotate)
 					{
 						_durationTransform.skewX += nextFrame.tweenRotate * DOUBLE_PI;
 						_durationTransform.skewY += nextFrame.tweenRotate * DOUBLE_PI;
 					}
+					*/
 					
 					_durationPivot.x = nextFrame.pivot.x - _currentFrame.pivot.x;
 					_durationPivot.y = nextFrame.pivot.y - _currentFrame.pivot.y;

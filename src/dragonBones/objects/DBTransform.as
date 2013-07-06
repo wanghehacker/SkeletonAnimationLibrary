@@ -33,7 +33,7 @@ package dragonBones.objects
 		 */
 		public var scaleY:Number;
 		/**
-		 * The rotation of that BoneTransform instance.
+		 * The rotation of that DBTransform instance.
 		 */
 		public function get rotation():Number
 		{
@@ -44,7 +44,7 @@ package dragonBones.objects
 			skewX = skewY = value;
 		}
 		/**
-		 * Creat a new BoneTransform instance.
+		 * Creat a new DBTransform instance.
 		 */
 		public function DBTransform()
 		{
@@ -56,7 +56,7 @@ package dragonBones.objects
 			scaleY = 1;
 		}
 		/**
-		 * Copy all properties from this BoneTransform instance to the passed BoneTransform instance.
+		 * Copy all properties from this DBTransform instance to the passed DBTransform instance.
 		 * @param	node
 		 */
 		public function copy(transform:DBTransform):void
@@ -69,7 +69,7 @@ package dragonBones.objects
 			scaleY = transform.scaleY;
 		}
 		/**
-		 * Get a string representing all BoneTransform property values.
+		 * Get a string representing all DBTransform property values.
 		 * @return String All property values in a formatted string.
 		 */
 		public function toString():String
