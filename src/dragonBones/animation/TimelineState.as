@@ -99,6 +99,8 @@ package dragonBones.animation
 			transform = new DBTransform();
 			pivot = new Point();
 			
+			//_originTransform = new DBTransform();
+			
 			_durationTransform = new DBTransform();
 			_durationPivot = new Point();
 			_durationColor = new ColorTransform();
@@ -111,24 +113,15 @@ package dragonBones.animation
 			_timeline = timeline;
 			
 			_originTransform = _timeline.originTransform;
+			//_originTransform.copy(_timeline.originTransform);
 			_originPivot = _timeline.originPivot;
 			
 			/*
-			var rotation:Number = object.origin.skewX + object.node.skewX + object._aniTransform.skewX;
+			var bLRX:Number = _bone.origin.skewX + _bone.offset.skewX + _bone._tween.skewX;
+			var bLRY:Number = _bone.origin.skewY + _bone.offset.skewY + _bone._tween.skewY;
 			
-			if(rotation * transform.skewX < 0 && (Math.abs(rotation) > Math.PI * 0.5 || Math.abs(transform.skewX) > Math.PI * 0.5))
-			{
-				if(rotation < 0)
-				{
-					//transform.skewX -= Math.PI * 2;
-					//transform.skewY -= Math.PI * 2;
-				}
-				else
-				{
-					//transform.skewX += Math.PI * 2;
-					//transform.skewY += Math.PI * 2;
-				}
-			}
+			_originTransform.skewX = bLRX + TransformUtils.formatRadian(_originTransform.skewX - bLRX);
+			_originTransform.skewY = bLRY + TransformUtils.formatRadian(_originTransform.skewY - bLRY);
 			*/
 			
 			_totalTime = _animationState.totalTime;
@@ -170,6 +163,8 @@ package dragonBones.animation
 		{
 			transform.skewX = TransformUtils.formatRadian(transform.skewX);
 			transform.skewY = TransformUtils.formatRadian(transform.skewY);
+			_originTransform.skewX = TransformUtils.formatRadian(_originTransform.skewX);
+			_originTransform.skewY = TransformUtils.formatRadian(_originTransform.skewY);
 		}
 		
 		private function updateNothing(progress:Number):void
@@ -307,14 +302,6 @@ package dragonBones.animation
 					_durationTransform.skewY = nextFrame.transform.skewY - _currentFrame.transform.skewY;
 					_durationTransform.scaleX = nextFrame.transform.scaleX - _currentFrame.transform.scaleX;
 					_durationTransform.scaleY = nextFrame.transform.scaleY - _currentFrame.transform.scaleY;
-					
-					/*
-					if (nextFrame.tweenRotate)
-					{
-						_durationTransform.skewX += nextFrame.tweenRotate * DOUBLE_PI;
-						_durationTransform.skewY += nextFrame.tweenRotate * DOUBLE_PI;
-					}
-					*/
 					
 					_durationPivot.x = nextFrame.pivot.x - _currentFrame.pivot.x;
 					_durationPivot.y = nextFrame.pivot.y - _currentFrame.pivot.y;
