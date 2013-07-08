@@ -176,6 +176,9 @@ package dragonBones
 			}
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		override public function set visible(value:Boolean):void
 		{
 			if(value != this._visible)
@@ -216,11 +219,14 @@ package dragonBones
 			_isHideDisplay = false;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		override public function dispose():void
 		{
 			super.dispose();
 			
-			_displayBridge.display = null;
+			_displayBridge.dispose();
 			_displayList.length = 0;
 			
 			_displayBridge = null;
@@ -239,9 +245,19 @@ package dragonBones
 			}
 		}
 		
+		/** @private */
 		dragonBones_internal function updateVisible(value:Boolean):void
 		{
 			_displayBridge.visible = this._parent.visible && this._visible && value;
+		}
+		
+		/**
+		 * Change all DisplayObject attached to this Bone instance.
+		 * @param	displayList An array of valid DisplayObject to attach to this Bone.
+		 */
+		public function changeDisplayList(displayList:Array):void
+		{
+			this.displayList = displayList;
 		}
 	}
 }

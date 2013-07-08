@@ -23,11 +23,11 @@ package dragonBones.factorys
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.system.ApplicationDomain;
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
-	import flash.geom.Matrix;
-	import flash.geom.Point;
 	
 	use namespace dragonBones_internal;
 	
@@ -38,6 +38,7 @@ package dragonBones.factorys
 	{
 		/** @private */
 		protected static const _helpMatirx:Matrix = new Matrix();
+		private static const _helpArr:Array = [];
 		private static const _loaderContext:LoaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
 		
 		/** @private */
@@ -283,9 +284,10 @@ package dragonBones.factorys
 			
 			var armature:Armature = generateArmature();
 			armature.name = armatureName;
+			var bone:Bone;
 			for each(var boneData:BoneData in armatureData.boneDataList)
 			{
-				var bone:Bone = new Bone();
+				bone = new Bone();
 				bone.name = boneData.name;
 				bone.origin.copy(boneData.transform);
 				if(armatureData.getBoneData(boneData.parent))
@@ -325,6 +327,10 @@ package dragonBones.factorys
 			}
 			
 			var skinData:SkinData = armatureData.getSkinData(skinName);
+			var slot:Slot;
+			var displayData:DisplayData;
+			var childArmature:Armature;
+			var i:int;
 			for each(var slotData:SlotData in skinData.slotDataList)
 			{
 				bone = armature.getBone(slotData.parent);
@@ -332,33 +338,35 @@ package dragonBones.factorys
 				{
 					continue;
 				}
-				var slot:Slot = generateSlot();
+				slot = generateSlot();
 				slot.name = slotData.name;
 				slot._originZOrder = slotData.zOrder;
 				slot._dislayDataList = slotData.displayDataList;
 				
-				var i:int = slotData.displayDataList.length;
+				_helpArr.length = 0;
+				i = slotData.displayDataList.length;
 				while(i --)
 				{
-					var displayData:DisplayData = slotData.displayDataList[i];
-					slot.changeDisplay(i);
+					displayData = slotData.displayDataList[i];
 					switch(displayData.type)
 					{
 						case DisplayData.ARMATURE:
-							var childArmature:Armature = buildArmature(displayData.name, null, null, _currentDataName, _currentTextureAtlasName);
+							childArmature = buildArmature(displayData.name, null, null, _currentDataName, _currentTextureAtlasName);
 							if(childArmature)
 							{
-								childArmature.animation.play();
-								slot.childArmature = childArmature;
+								//childArmature.animation.play();
+								_helpArr[i] = childArmature;
 							}
 							break;
 						case DisplayData.IMAGE:
 						default:
-							slot.display = generateDisplay(_textureAtlasDic[_currentTextureAtlasName], displayData.name, displayData.pivot.x, displayData.pivot.y);
+							_helpArr[i] = generateDisplay(_textureAtlasDic[_currentTextureAtlasName], displayData.name, displayData.pivot.x, displayData.pivot.y);
 							break;
 						
 					}
 				}
+				slot.displayList = _helpArr;
+				slot.changeDisplay(0);
 				bone.addChild(slot);
 			}
 			armature._slotsZOrderChanged = true;

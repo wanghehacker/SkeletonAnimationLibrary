@@ -54,6 +54,9 @@
 			}
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		override public function set visible(value:Boolean):void
 		{
 			if(this._visible != value)
@@ -93,6 +96,9 @@
 			scaleMode = 1;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		override public function dispose():void
 		{
 			super.dispose();

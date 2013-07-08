@@ -20,17 +20,25 @@ package dragonBones.display
 	{
 		function get visible():Boolean;
 		function set visible(value:Boolean):void;
+		
 		/**
 		 * Indicates the original display object relative to specific display engine.
 		 */
 		function get display():Object;
 		function set display(value:Object):void;
+		
+		/**
+		 * Cleans up resources used by this IDisplayBridge instance.
+		 */
+		function dispose():void;
+		
 		/**
 		 * Updates the transform of the display object
 		 * @param	matrix
 		 * @param	transform
 		 */
 		function updateTransform(matrix:Matrix, transform:DBTransform):void;
+		
 		/**
 		 * Updates the color of the display object
 		 * @param	a
@@ -52,12 +60,14 @@ package dragonBones.display
 			gMultiplier:Number, 
 			bMultiplier:Number
 		):void;
+		
 		/**
 		 * Adds the original display object to another display object.
 		 * @param	container
 		 * @param	index
 		 */
 		function addDisplay(container:Object, index:int = -1):void;
+		
 		/**
 		 * remove the original display object from its parent.
 		 */

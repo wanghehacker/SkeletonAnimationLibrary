@@ -257,11 +257,12 @@
 				return null;
 			}
 			var i:int = _animationDataList.length;
+			var animationData:AnimationData;
 			while(i --)
 			{
 				if(_animationDataList[i].name == animationName)
 				{
-					var animationData:AnimationData = _animationDataList[i];
+					animationData = _animationDataList[i];
 					break;
 				}
 			}
@@ -332,10 +333,11 @@
 			
 			
 			var boneList:Vector.<Bone> = _armature._boneList;
+			var bone:Bone;
 			i = boneList.length;
 			while(i --)
 			{
-				var bone:Bone = boneList[i];
+				bone = boneList[i];
 				if(bone.childArmature)
 				{
 					bone.childArmature.animation.gotoAndPlay(animationName);
@@ -423,32 +425,55 @@
 			passedTime *= _timeScale;
 			
 			var l:int = _armature._boneList.length;
+			var i:int;
+			var j:int;
 			var k:int = l;
+			var bone:Bone;
+			var boneName:String;
+			var weigthLeft:Number;
+			
+			var x:Number;
+			var y:Number;
+			var skewX:Number;
+			var skewY:Number;
+			var scaleX:Number;
+			var scaleY:Number;
+			var pivotX:Number;
+			var pivotY:Number;
+			
+			var layerTotalWeight:Number;
+			var animationStateList:Vector.<AnimationState>;
+			var animationState:AnimationState;
+			var timelineState:TimelineState;
+			var weight:Number;
+			var transform:DBTransform;
+			var pivot:Point;
+			
 			l --;
 			while(k --)
 			{
-				var bone:Bone = _armature._boneList[k];
-				var boneName:String = bone.name;
-				var weigthLeft:Number = 1;
+				bone = _armature._boneList[k];
+				boneName = bone.name;
+				weigthLeft = 1;
 				
-				var x:Number = 0;
-				var y:Number = 0;
-				var skewX:Number = 0;
-				var skewY:Number = 0;
-				var scaleX:Number = 0;
-				var scaleY:Number = 0;
-				var pivotX:Number = 0;
-				var pivotY:Number = 0;
+				x = 0;
+				y = 0;
+				skewX = 0;
+				skewY = 0;
+				scaleX = 0;
+				scaleY = 0;
+				pivotX = 0;
+				pivotY = 0;
 				
-				var i:int = _animationLayer.length;
+				i = _animationLayer.length;
 				while(i --)
 				{
-					var layerTotalWeight:Number = 0;
-					var animationStateList:Vector.<AnimationState> = _animationLayer[i];
-					var j:int = animationStateList.length;
+					layerTotalWeight = 0;
+					animationStateList = _animationLayer[i];
+					j = animationStateList.length;
 					while(j --)
 					{
-						var animationState:AnimationState = animationStateList[j];
+						animationState = animationStateList[j];
 						if(k == l)
 						{
 							if(animationState.advanceTime(passedTime))
@@ -458,13 +483,13 @@
 							}
 						}
 						
-						var timelineState:TimelineState = animationState._timelineStates[boneName];
+						timelineState = animationState._timelineStates[boneName];
 						
 						if(timelineState)
 						{
-							var weight:Number = animationState._fadeWeight * animationState.weight * weigthLeft;
-							var transform:DBTransform = timelineState.transform;
-							var pivot:Point = timelineState.pivot;
+							weight = animationState._fadeWeight * animationState.weight * weigthLeft;
+							transform = timelineState.transform;
+							pivot = timelineState.pivot;
 							x += transform.x * weight;
 							y += transform.y * weight;
 							skewX += transform.skewX * weight;
@@ -505,10 +530,12 @@
 		dragonBones_internal function setStatesDisplayControl(animationState:AnimationState):void
 		{
 			var i:int = _animationLayer.length;
+			var animationStateList:Vector.<AnimationState> = _animationLayer[i];
+			var j:int;
 			while(i --)
 			{
-				var animationStateList:Vector.<AnimationState> = _animationLayer[i];
-				var j:int = animationStateList.length;
+				animationStateList = _animationLayer[i];
+				j = animationStateList.length;
 				while(j --)
 				{
 					animationStateList[j].displayControl = animationStateList[j] == animationState;

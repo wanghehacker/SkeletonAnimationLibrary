@@ -234,8 +234,8 @@ package dragonBones.animation
 			progress -= loopCount;
 			
 			//
-			var isArrivedFrame:Boolean = false;
 			var playedTime:Number = _totalTime * progress;
+			var isArrivedFrame:Boolean = false;
 			var frameIndex:int;
 			while (!_currentFrame || playedTime > _currentFramePosition + _currentFrameDuration || playedTime < _currentFramePosition)
 			{

@@ -32,9 +32,6 @@ package dragonBones.display
 		{
 			return _display;
 		}
-		/**
-		 * @private
-		 */
 		public function set display(value:Object):void
 		{
 			if (_display == value)
@@ -74,6 +71,15 @@ package dragonBones.display
 		 */
 		public function NativeDisplayBridge()
 		{
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function dispose():void
+		{
+			_display = null;
+			_colorTransform = null;
 		}
 		
 		/**

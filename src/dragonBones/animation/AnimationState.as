@@ -289,12 +289,14 @@ package dragonBones.animation
 				if(recursive)
 				{
 					var i:int = _armature._boneList.length;
+					var bone:Bone;
+					var currentBone:Bone;
 					while(i --)
 					{
-						var bone:Bone = _armature._boneList[i];
+						bone = _armature._boneList[i];
 						if(bone.name == timelineName)
 						{
-							var currentBone:Bone = bone;
+							currentBone = bone;
 						}
 						if(currentBone && (currentBone == bone || currentBone.contains(bone)))
 						{
@@ -322,12 +324,14 @@ package dragonBones.animation
 				if(recursive)
 				{
 					var i:int = _armature._boneList.length;
+					var bone:Bone;
+					var currentBone:Bone;
 					while(i --)
 					{
-						var bone:Bone = _armature._boneList[i];
+						bone = _armature._boneList[i];
 						if(bone.name == timelineName)
 						{
-							var currentBone:Bone = bone;
+							currentBone = bone;
 						}
 						if(currentBone && (currentBone == bone || currentBone.contains(bone)))
 						{
@@ -343,6 +347,7 @@ package dragonBones.animation
 				for each(timelineName in _mixingTransforms)
 				{
 					var hasMixing:Boolean = true;
+					break;
 				}
 				if(!hasMixing)
 				{
@@ -450,22 +455,24 @@ package dragonBones.animation
 				if(_clip.frameList.length > 0)
 				{
 					var playedTime:Number = _totalTime * (progress - loopCount);
+					var isArrivedFrame:Boolean = false;
+					var frameIndex:int;
 					while(!_currentFrame || playedTime > _currentFrame.position + _currentFrame.duration || playedTime < _currentFrame.position)
 					{
 						if(isArrivedFrame)
 						{
 							_armature.arriveAtFrame(_currentFrame, null, this, true);
 						}
-						var isArrivedFrame:Boolean = true;
+						isArrivedFrame = true;
 						if(_currentFrame)
 						{
-							var index:int = _clip.frameList.indexOf(_currentFrame);
-							index ++;
-							if(index >= _clip.frameList.length)
+							frameIndex = _clip.frameList.indexOf(_currentFrame);
+							frameIndex ++;
+							if(frameIndex >= _clip.frameList.length)
 							{
-								index = 0;
+								frameIndex = 0;
 							}
-							_currentFrame = _clip.frameList[index];
+							_currentFrame = _clip.frameList[frameIndex];
 						}
 						else
 						{

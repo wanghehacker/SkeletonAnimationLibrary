@@ -9,13 +9,15 @@
 
 	
 	import dragonBones.objects.DBTransform;
+	
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	
 	import starling.display.DisplayObject;
 	import starling.display.DisplayObjectContainer;
-	import starling.display.Quad;
 	import starling.display.Image;
+	import starling.display.Quad;
+	import starling.textures.Texture;
 	
 	/**
 	 * The StarlingDisplayBridge class is an implementation of the IDisplayBridge interface for starling.display.DisplayObject.
@@ -23,6 +25,11 @@
 	 */
 	public class StarlingDisplayBridge implements IDisplayBridge
 	{
+		private var _imageBackup:Image;
+		private var _textureBackup:Texture;
+		private var _pivotXBackup:Number;
+		private var _pivotYBackup:Number;
+		
 		private var _display:Object;
 		/**
 		 * @inheritDoc
@@ -31,11 +38,32 @@
 		{
 			return _display;
 		}
-		/**
-		 * @private
-		 */
 		public function set display(value:Object):void
 		{
+			if (_display is Image && value is Image)
+			{
+				var from:Image = _display as Image;
+				var to:Image = value as Image;
+				if (from.texture == to.texture)
+				{
+					if(from == _imageBackup)
+					{
+						from.texture = _textureBackup;
+						from.pivotX = _pivotXBackup;
+						from.pivotY = _pivotYBackup;
+						from.readjustSize();
+					}
+					return;
+				}
+			
+				from.texture = to.texture;
+				//update pivot
+				from.pivotX = to.pivotX;
+				from.pivotY = to.pivotY;
+				from.readjustSize();
+				return;
+			}
+			
 			if (_display == value)
 			{
 				return;
@@ -49,6 +77,13 @@
 					var index:int = _display.parent.getChildIndex(_display);
 				}
 				removeDisplay();
+			}
+			else if(value is Image && !_imageBackup)
+			{
+				_imageBackup = value as Image;
+				_textureBackup = _imageBackup.texture;
+				_pivotXBackup = _imageBackup.pivotX;
+				_pivotYBackup = _imageBackup.pivotY;
 			}
 			_display = value;
 			addDisplay(parent, index);
@@ -76,6 +111,16 @@
 		/**
 		 * @inheritDoc
 		 */
+		public function dispose():void
+		{
+			_display = null;
+			_imageBackup = null;
+			_textureBackup = null;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
 		public function updateTransform(matrix:Matrix, transform:DBTransform):void
 		{
 			var pivotX:Number = _display.pivotX;
@@ -84,11 +129,11 @@
 			matrix.ty -= matrix.b * pivotX + matrix.d * pivotY;
 			//if(updateStarlingDisplay)
 			//{
-			//_display.transformationMatrix = matrix;
+			//	_display.transformationMatrix = matrix;
 			//}
 			//else
 			//{
-			_display.transformationMatrix.copyFrom(matrix);
+				_display.transformationMatrix.copyFrom(matrix);
 			//}
 		}
 		
